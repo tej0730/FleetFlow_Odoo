@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import Modal from '../components/Modal'
 import { Zap, Eye, EyeOff, Shield, Truck, BarChart3, MapPin } from 'lucide-react'
 
 const DEMO_ROLES = [
@@ -18,6 +19,69 @@ export default function Login() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Reset Password State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [resetStep, setResetStep] = useState(1) // 1: Email, 2: Token + Password
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetToken, setResetToken] = useState('')
+  const [resetPassword, setResetPassword] = useState('')
+  const [isResetting, setIsResetting] = useState(false)
+
+  const handleSendResetEmail = async (e) => {
+    e.preventDefault()
+    if (!resetEmail) return toast.error('Please enter your email')
+    
+    setIsResetting(true)
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to request reset')
+      
+      toast.success('Reset PIN sent to your email!')
+      setResetStep(2) // Move to step 2
+    } catch (err) {
+      toast.error(err.message || 'Failed to request reset')
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault()
+    if (!resetToken || !resetPassword) return toast.error('Please fill all fields')
+    if (resetToken.length !== 6) return toast.error('PIN must be 6 digits')
+    if (resetPassword.length < 6) return toast.error('Password must be at least 6 characters')
+    
+    setIsResetting(true)
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, token: resetToken, newPassword: resetPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password')
+      
+      toast.success('Password updated! You can now sign in.')
+      setIsResetModalOpen(false)
+      // Reset state for next time
+      setResetStep(1)
+      setResetEmail('')
+      setResetToken('')
+      setResetPassword('')
+      // Pre-fill login box
+      setValue('email', resetEmail)
+    } catch (err) {
+      toast.error(err.message || 'Failed to reset password')
+    } finally {
+      setIsResetting(false)
+    }
+  }
   const { register, handleSubmit, setValue, formState: { errors } } = useForm()
 
   const onSubmit = async ({ email, password }) => {
@@ -77,7 +141,16 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="label">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="label !mb-0">Password</label>
+                <button 
+                  type="button" 
+                  onClick={() => setIsResetModalOpen(true)}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   id="password"
@@ -131,6 +204,46 @@ export default function Login() {
           FleetFlow v1.0 · Built for Odoo Hackathon 2025
         </p>
       </div>
+
+      <Modal isOpen={isResetModalOpen} onClose={() => {setIsResetModalOpen(false); setResetStep(1)}} title="Reset Password" size="sm">
+        {resetStep === 1 ? (
+          <form onSubmit={handleSendResetEmail} className="space-y-4">
+            <p className="text-sm text-gray-500 mb-2">Enter your email and we'll send you a 6-digit reset PIN.</p>
+            <div>
+              <label className="label">Email Address</label>
+              <input 
+                type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} 
+                required className="input" placeholder="you@company.com" 
+              />
+            </div>
+            <button type="submit" disabled={isResetting} className="btn-primary w-full justify-center mt-2">
+              {isResetting ? <><LoadingSpinner size="sm" /> Sending PIN...</> : 'Send Reset PIN'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <p className="text-sm text-gray-500 mb-2">Check your email (server console) for the 6-digit PIN.</p>
+            <div>
+              <label className="label">6-Digit PIN</label>
+              <input 
+                type="text" value={resetToken} onChange={e => setResetToken(e.target.value)} 
+                required className="input font-mono tracking-widest text-center" placeholder="------" maxLength={6} 
+              />
+            </div>
+            <div>
+              <label className="label">New Password</label>
+              <input 
+                type="password" value={resetPassword} onChange={e => setResetPassword(e.target.value)} 
+                required className="input" placeholder="Min. 6 characters" minLength={6} 
+              />
+            </div>
+            <button type="submit" disabled={isResetting} className="btn-primary w-full justify-center mt-2">
+              {isResetting ? <><LoadingSpinner size="sm" /> Resetting...</> : 'Confirm Reset Password'}
+            </button>
+          </form>
+        )}
+      </Modal>
+
     </div>
   )
 }

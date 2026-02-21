@@ -154,7 +154,10 @@ export default function Register() {
 
             {/* Password */}
             <div>
-              <label className="label">Password</label>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="label !mb-0">Password</label>
+                <span className="text-[10px] text-gray-500 font-medium tracking-wide">Must be at least 6 characters</span>
+              </div>
               <div className="relative">
                 <input
                   id="reg-password"
