@@ -319,30 +319,7 @@ export default function TripDispatcher() {
                           </button>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td><StatusPill status={trip.status} /></td>
-                  <td className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      {trip.status === 'Draft' && (
-                        <button onClick={() => handleStatusChange(trip.id, 'Dispatched')} className="btn-ghost text-blue-600 hover:text-blue-800">
-                          <Send className="w-3.5 h-3.5" /> Dispatch
-                        </button>
-                      )}
-                      {trip.status === 'Dispatched' && (
-                        <button onClick={() => handleStatusChange(trip.id, 'Completed')} className="btn-ghost text-emerald-600 hover:text-emerald-800">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Complete
-                        </button>
-                      )}
-                      {(trip.status === 'Draft' || trip.status === 'Dispatched') && (
-                        <button onClick={() => handleStatusChange(trip.id, 'Cancelled')} className="btn-ghost text-red-600 hover:text-red-800">
-                          <XCircle className="w-3.5 h-3.5" /> Cancel
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                    </td>
                 </tr>
               ))
             )}
@@ -350,5 +327,6 @@ export default function TripDispatcher() {
         </table>
       </div>
     </div>
+  </div>
   )
 }
