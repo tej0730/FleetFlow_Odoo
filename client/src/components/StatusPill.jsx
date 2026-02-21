@@ -2,33 +2,29 @@ import { cn } from '../lib/utils'
 
 const STATUS_STYLES = {
   // Vehicle
-  Available:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  'On Trip':   'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  'In Shop':   'bg-red-500/20 text-red-400 border-red-500/30',
-  Retired:     'bg-slate-600/40 text-slate-400 border-slate-600/30',
-
+  Available:   'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'On Trip':   'bg-blue-100 text-blue-700 border-blue-200',
+  'In Shop':   'bg-red-100 text-red-700 border-red-200',
+  Retired:     'bg-gray-100 text-gray-500 border-gray-200',
   // Driver
-  'On Duty':   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  'Off Duty':  'bg-slate-600/40 text-slate-400 border-slate-600/30',
-  Suspended:   'bg-red-500/20 text-red-400 border-red-500/30',
-
+  'On Duty':   'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'Off Duty':  'bg-gray-100 text-gray-500 border-gray-200',
+  Suspended:   'bg-red-100 text-red-700 border-red-200',
   // Trip
-  Draft:       'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  Dispatched:  'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  Completed:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  Cancelled:   'bg-slate-600/40 text-slate-400 border-slate-600/30',
-
+  Draft:       'bg-amber-100 text-amber-700 border-amber-200',
+  Dispatched:  'bg-blue-100 text-blue-700 border-blue-200',
+  Completed:   'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Cancelled:   'bg-gray-100 text-gray-500 border-gray-200',
   // Maintenance
-  Open:        'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  Closed:      'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-
+  Open:        'bg-amber-100 text-amber-700 border-amber-200',
+  Closed:      'bg-emerald-100 text-emerald-700 border-emerald-200',
   // License
-  EXPIRED:     'bg-red-600/30 text-red-400 border-red-600/50',
-  'EXPIRING SOON': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  EXPIRED:         'bg-red-100 text-red-700 border-red-300',
+  'EXPIRING SOON': 'bg-orange-100 text-orange-700 border-orange-200',
 }
 
 export default function StatusPill({ status, className }) {
-  const style = STATUS_STYLES[status] || 'bg-slate-700/40 text-slate-400 border-slate-700/30'
+  const style = STATUS_STYLES[status] || 'bg-gray-100 text-gray-500 border-gray-200'
   return (
     <span className={cn('badge border', style, className)}>
       {status}
