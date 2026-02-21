@@ -1,9 +1,5 @@
-/* ─────────────────────────────────────────────────────────
-   VehicleRegistry.jsx
-   OWNER: Member C — Vehicle Registry (data table + add form)
-──────────────────────────────────────────────────────────── */
 import { useState } from 'react'
-import { Truck, Plus } from 'lucide-react'
+import { Truck, Plus, Power } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../lib/api'
 import StatusPill from '../components/StatusPill'
@@ -39,6 +35,17 @@ export default function VehicleRegistry() {
     }
   })
 
+  // Retire / Restore toggle mutation
+  const toggleRetire = useMutation({
+    mutationFn: ({ id, status }) => api.patch(`/vehicles/${id}`, { status }).then(r => r.data),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      toast.success(vars.status === 'Retired' ? 'Vehicle retired' : 'Vehicle restored to Available')
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update vehicle')
+  })
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setFormError('')
@@ -59,6 +66,12 @@ export default function VehicleRegistry() {
 
   const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
 
+  // Summary counts
+  const available = vehicles.filter(v => v.status === 'Available').length
+  const onTrip = vehicles.filter(v => v.status === 'On Trip').length
+  const inShop = vehicles.filter(v => v.status === 'In Shop').length
+  const retired = vehicles.filter(v => v.status === 'Retired').length
+
   return (
     <div>
       <div className="page-header">
@@ -69,6 +82,14 @@ export default function VehicleRegistry() {
         <button onClick={() => setIsModalOpen(true)} className="btn-primary">
           <Plus className="w-4 h-4" /> Add Vehicle
         </button>
+      </div>
+
+      {/* Fleet Summary Bar */}
+      <div className="flex items-center gap-4 mb-4 text-xs">
+        <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{available} Available</span>
+        <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{onTrip} On Trip</span>
+        <span className="px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">{inShop} In Shop</span>
+        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">{retired} Retired</span>
       </div>
 
       {/* Add Vehicle Modal */}
@@ -126,13 +147,14 @@ export default function VehicleRegistry() {
               <th>Capacity</th>
               <th>Odometer</th>
               <th>Status</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan="5" className="text-center py-8 text-gray-400">Loading vehicles...</td></tr>
+              <tr><td colSpan="6" className="text-center py-8 text-gray-400">Loading vehicles...</td></tr>
             ) : vehicles.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-8 text-gray-400">No vehicles registered yet.</td></tr>
+              <tr><td colSpan="6" className="text-center py-8 text-gray-400">No vehicles registered yet.</td></tr>
             ) : (
               vehicles.map(v => (
                 <tr key={v.id}>
@@ -151,6 +173,26 @@ export default function VehicleRegistry() {
                   <td className="text-gray-700">{v.max_capacity_kg?.toLocaleString()} kg</td>
                   <td className="text-gray-700 font-mono">{v.odometer?.toLocaleString()} km</td>
                   <td><StatusPill status={v.status} /></td>
+                  <td className="text-right">
+                    {v.status === 'Available' && (
+                      <button
+                        onClick={() => toggleRetire.mutate({ id: v.id, status: 'Retired' })}
+                        className="btn-ghost text-gray-500 hover:text-red-600"
+                        title="Retire this vehicle"
+                      >
+                        <Power className="w-3.5 h-3.5" /> Retire
+                      </button>
+                    )}
+                    {v.status === 'Retired' && (
+                      <button
+                        onClick={() => toggleRetire.mutate({ id: v.id, status: 'Available' })}
+                        className="btn-ghost text-emerald-600 hover:text-emerald-800"
+                        title="Restore to Available"
+                      >
+                        <Power className="w-3.5 h-3.5" /> Restore
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))
             )}
