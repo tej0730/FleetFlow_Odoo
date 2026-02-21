@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 const Joi = require('joi');
 const validateRequest = require('../middleware/validate');
+const nodemailer = require('nodemailer');
 
 const loginSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
@@ -50,6 +51,29 @@ const registerSchema = Joi.object({
     role: Joi.string().valid('manager', 'dispatcher', 'safety', 'analyst').default('dispatcher')
 });
 
+// Temporary memory store for OTPs during registration (email -> { userData, otp, expires })
+const otpStore = new Map();
+
+// Generate a free Ethereal Email test account on the fly for local testing
+let testAccount = null;
+let transporter = null;
+
+async function initMailer() {
+    if (!testAccount) {
+        testAccount = await nodemailer.createTestAccount();
+        transporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: testAccount.user, // generated ethereal user
+                pass: testAccount.pass, // generated ethereal password
+            },
+        });
+    }
+}
+initMailer();
+
 router.post('/register', validateRequest(registerSchema), async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -59,13 +83,65 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
             return res.status(409).json({ error: 'User already exists' });
         }
 
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Store user data and OTP (expires in 10 mins)
+        otpStore.set(email, { name, password, role, otp, expires: Date.now() + 600000 });
+
+        // Send Email via Ethereal 
+        // (This simulates a real email but provides a link to view it in the browser)
+        if (transporter) {
+           const info = await transporter.sendMail({
+                from: '"FleetFlow Verify" <no-reply@fleetflow.com>',
+                to: email, 
+                subject: "Your FleetFlow Verification Code", 
+                text: `Welcome to FleetFlow! Your 6-digit activation code is: ${otp}`, 
+                html: `<b>Welcome to FleetFlow!</b><br>Your 6-digit activation code is: <h2>${otp}</h2>`, 
+            });
+            console.log("\n=============================================");
+            console.log(`✉️  OTP Email sent to ${email}`);
+            console.log("🔍 PREVIEW URL: %s", nodemailer.getTestMessageUrl(info));
+            console.log("=============================================\n");
+        } else {
+           console.log(`Fallback: OTP for ${email} is ${otp}`);
+        }
+
+        res.status(200).json({ message: 'OTP sent successfully', user: { name, email } });
+    } catch (err) {
+        console.error('Registration/OTP error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/verify-otp', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        
+        const pendingUser = otpStore.get(email);
+
+        if (!pendingUser) {
+            return res.status(400).json({ error: 'No pending registration for this email.' });
+        }
+        if (Date.now() > pendingUser.expires) {
+            otpStore.delete(email);
+            return res.status(400).json({ error: 'OTP has expired. Please register again.' });
+        }
+        if (pendingUser.otp !== otp) {
+            return res.status(400).json({ error: 'Invalid OTP code.' });
+        }
+
+        // OTP is valid, complete the registration
         const saltRounds = 10;
-        const passwordHash = await bcrypt.hash(password, saltRounds);
+        const passwordHash = await bcrypt.hash(pendingUser.password, saltRounds);
 
         const newUser = await pool.query(
             'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-            [name, email, passwordHash, role]
+            [pendingUser.name, email, passwordHash, pendingUser.role]
         );
+
+        // Clean up store
+        otpStore.delete(email);
 
         const user = newUser.rows[0];
         const token = jwt.sign(
@@ -78,9 +154,10 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
             token,
             user
         });
+
     } catch (err) {
-        console.error('Registration error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('OTP Verification error:', err);
+        res.status(500).json({ error: 'Internal server error validation OTP' });
     }
 });
 
@@ -110,9 +187,9 @@ router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (re
             expiresAt: Date.now() + 15 * 60 * 1000 
         });
 
-        // Simulate sending email
+        // Simulate sending email (Or use nodemailer here too if you expand later)
         console.log('\n=============================================');
-        console.log(`📧 EMAILED TO: ${email}`);
+        console.log(`📧 FORGOT PASSWORD EMAILED TO: ${email}`);
         console.log(`🔐 RESET PIN: ${token}`);
         console.log('=============================================\n');
 
@@ -159,79 +236,6 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
         resetTokens.delete(email);
 
         res.json({ message: 'Password reset successfully' });
-    } catch (err) {
-        console.error('Reset password error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-module.exports = router;
-
-const forgotPasswordSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required()
-});
-
-router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (req, res) => {
-    try {
-        const { email } = req.body;
-        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userResult.rows.length === 0) {
-            // Silently succeed to prevent email enumeration
-            return res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
-        }
-
-        const user = userResult.rows[0];
-        // Generate 6 digit PIN string
-        const pin = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
-
-        resetTokens.set(email, { pin, expiresAt, userId: user.id });
-
-        // Simulate sending email
-        console.log(`\n=== EMAIL SIMULATOR ===\nTo: ${email}\nSubject: Password Reset PIN\nBody: Your 6-digit PIN is: ${pin}\n=======================\n`);
-
-        res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
-    } catch (err) {
-        console.error('Forgot password error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-const resetPasswordSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required(),
-    token: Joi.string().length(6).required(),
-    newPassword: Joi.string().min(6).required()
-});
-
-router.post('/reset-password', validateRequest(resetPasswordSchema), async (req, res) => {
-    try {
-        const { email, token, newPassword } = req.body;
-
-        const resetData = resetTokens.get(email);
-
-        if (!resetData) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
-
-        if (Date.now() > resetData.expiresAt) {
-            resetTokens.delete(email);
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
-
-        if (resetData.pin !== token) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
-
-        // Successfully validated PIN
-        const saltRounds = 10;
-        const passwordHash = await bcrypt.hash(newPassword, saltRounds);
-
-        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, resetData.userId]);
-
-        // Clear the token so it cannot be reused
-        resetTokens.delete(email);
-
-        res.json({ message: 'Password has been reset successfully' });
     } catch (err) {
         console.error('Reset password error:', err);
         res.status(500).json({ error: 'Internal server error' });
