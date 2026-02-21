@@ -84,7 +84,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
     }
 });
 
-// Temporary memory store for hackathon (email -> { token, expiresAt })
+// In-memory store for reset PINs: { email: { pin, expiresAt, userId } }
 const resetTokens = new Map();
 
 const forgotPasswordSchema = Joi.object({
@@ -94,29 +94,23 @@ const forgotPasswordSchema = Joi.object({
 router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (req, res) => {
     try {
         const { email } = req.body;
-
-        const userExists = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (userExists.rows.length === 0) {
-            // Security best practice: don't reveal if user exists, just return success
-            return res.json({ message: 'If the email exists, a reset pin was sent.' });
+        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            // Silently succeed to prevent email enumeration
+            return res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
         }
 
-        // Generate 6-digit PIN
-        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        const user = userResult.rows[0];
+        // Generate 6 digit PIN string
+        const pin = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
 
-        // Save to memory (expires in 15 mins)
-        resetTokens.set(email, {
-            token,
-            expiresAt: Date.now() + 15 * 60 * 1000
-        });
+        resetTokens.set(email, { pin, expiresAt, userId: user.id });
 
         // Simulate sending email
-        console.log('\n=============================================');
-        console.log(`📧 EMAILED TO: ${email}`);
-        console.log(`🔐 RESET PIN: ${token}`);
-        console.log('=============================================\n');
+        console.log(`\n=== EMAIL SIMULATOR ===\nTo: ${email}\nSubject: Password Reset PIN\nBody: Your 6-digit PIN is: ${pin}\n=======================\n`);
 
-        res.json({ message: 'If the email exists, a reset pin was sent.' });
+        res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
     } catch (err) {
         console.error('Forgot password error:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -133,29 +127,28 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
     try {
         const { email, token, newPassword } = req.body;
 
-        // 1. Verify token
-        const record = resetTokens.get(email);
-        if (!record || record.token !== token) {
-            return res.status(400).json({ error: 'Invalid or expired reset pin' });
+        const resetData = resetTokens.get(email);
+
+        if (!resetData) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
         }
-        if (Date.now() > record.expiresAt) {
+
+        if (Date.now() > resetData.expiresAt) {
             resetTokens.delete(email);
-            return res.status(400).json({ error: 'Reset pin has expired. Please request a new one.' });
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
         }
 
-        // 2. Verify user still exists
-        const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userExists.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
+        if (resetData.pin !== token) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
         }
 
-        // 3. Update password
+        // Successfully validated PIN
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(newPassword, saltRounds);
 
-        await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [passwordHash, email]);
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, resetData.userId]);
 
-        // 4. Clean up token so it can't be reused
+        // Clear the token so it cannot be reused
         resetTokens.delete(email);
 
         res.json({ message: 'Password reset successfully' });
