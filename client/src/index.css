@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,33 +10,22 @@
   }
 
   body {
-    @apply bg-[#f8fafc] text-slate-900 font-sans antialiased overflow-x-hidden;
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
     min-height: 100vh;
-    /* Subtle background grid pattern for premium feel */
-    background-image: radial-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  h1, h2, h3, h4, h5, h6, .page-title {
-    font-family: 'Outfit', 'Inter', sans-serif;
-    @apply tracking-tight text-slate-800;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
-
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-gray-100;
   }
-
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full transition-colors;
+    @apply bg-gray-300 rounded-full;
   }
-
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400;
+    @apply bg-gray-400;
   }
 }
 
@@ -77,11 +66,11 @@
   }
 
   .label {
-    @apply block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide;
+    @apply block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide;
   }
 
   .field-error {
-    @apply text-red-500 text-xs mt-1 font-medium animate-fade-in;
+    @apply text-red-500 text-xs mt-1;
   }
 
   /* ───────────────── Cards ───────────────── */
@@ -101,7 +90,7 @@
 
   /* ───────────────── Table ───────────────── */
   .table-wrapper {
-    @apply overflow-x-auto rounded-2xl border border-slate-200 shadow-card bg-white/80 backdrop-blur-sm;
+    @apply overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white;
   }
 
   table.ff-table {
@@ -109,32 +98,32 @@
   }
 
   table.ff-table thead tr {
-    @apply bg-slate-50/80 border-b border-slate-200 backdrop-blur-md sticky top-0 z-10;
+    @apply bg-gray-50 border-b border-gray-200;
   }
 
   table.ff-table thead th {
-    @apply px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap;
+    @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap;
   }
 
   table.ff-table tbody tr {
-    @apply border-t border-slate-100 hover:bg-brand-50/50 hover:shadow-sm hover:z-10 relative transition-all duration-300 hover:scale-[1.005] origin-left;
+    @apply border-t border-gray-100 hover:bg-indigo-50/30 transition-colors duration-100;
   }
 
   table.ff-table tbody td {
-    @apply px-4 py-3.5 text-slate-700 font-medium whitespace-nowrap;
+    @apply px-4 py-3 text-gray-700;
   }
 
   /* ───────────────── Page Header ───────────────── */
   .page-header {
-    @apply flex items-center justify-between mb-8;
+    @apply flex items-center justify-between mb-6;
   }
 
   .page-title {
-    @apply text-3xl font-extrabold text-slate-900 tracking-tight;
+    @apply text-2xl font-bold text-gray-900;
   }
 
   .page-subtitle {
-    @apply text-sm font-medium text-slate-500 mt-1;
+    @apply text-sm text-gray-500 mt-0.5;
   }
 
   /* ───────────────── Sidebar ───────────────── */
@@ -143,21 +132,17 @@
   }
 
   .sidebar-link.active {
-    @apply text-brand-700 bg-brand-50 shadow-sm border border-brand-100/50 font-bold;
-  }
-  
-  .sidebar-link.active::before {
-    @apply content-[''] absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-brand-500 rounded-r-md;
+    @apply text-indigo-700 bg-indigo-50 font-semibold;
   }
 
   /* ───────────────── Badge ───────────────── */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
   }
 
   /* ───────────────── Role Badge ───────────────── */
   .role-badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 border border-slate-200 text-slate-600;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider;
   }
 
   /* ───────────────── Glass Components ───────────────── */
