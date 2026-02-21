@@ -147,18 +147,18 @@ export default function VehicleRegistry() {
                 <tr key={v.id}>
                   <td>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                        <Truck className="w-4 h-4 text-blue-400" />
+                      <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100/50 flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-brand-600" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-slate-200">{v.name}</div>
-                        <div className="text-xs text-slate-500 font-mono">{v.license_plate}</div>
+                        <div className="text-sm font-bold text-slate-900">{v.name}</div>
+                        <div className="text-xs font-semibold text-slate-500 font-mono mt-0.5">{v.license_plate}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="text-slate-300">{v.type}</td>
-                  <td className="text-slate-300">{v.max_capacity_kg?.toLocaleString()} kg</td>
-                  <td className="text-slate-300 font-mono">{v.odometer?.toLocaleString()} km</td>
+                  <td className="text-slate-700 font-semibold">{v.type}</td>
+                  <td className="text-slate-700 font-bold">{v.max_capacity_kg?.toLocaleString()} kg</td>
+                  <td className="text-slate-600 font-mono font-medium">{v.odometer?.toLocaleString()} km</td>
                   <td><StatusPill status={v.status} /></td>
                 </tr>
               ))

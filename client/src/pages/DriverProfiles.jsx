@@ -68,7 +68,7 @@ export default function DriverProfiles() {
     { key: 'name', header: 'Name' },
     {
       key: 'license_number', header: 'License',
-      render: (v) => <span className="font-mono text-xs bg-slate-800 px-2 py-0.5 rounded">{v}</span>
+      render: (v) => <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md shadow-sm">{v}</span>
     },
     {
       key: 'license_expiry', header: 'Expiry',
@@ -101,7 +101,7 @@ export default function DriverProfiles() {
     },
     {
       key: 'trip_completion_rate', header: 'Trip Success',
-      render: (v) => <span className="text-slate-400">{v || 100}%</span>
+      render: (v) => <span className="text-slate-600 font-semibold">{v || 100}%</span>
     },
   ]
 
