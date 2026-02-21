@@ -18,15 +18,12 @@
     width: 5px;
     height: 5px;
   }
-
   ::-webkit-scrollbar-track {
     @apply bg-gray-100;
   }
-
   ::-webkit-scrollbar-thumb {
     @apply bg-gray-300 rounded-full;
   }
-
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
@@ -36,28 +33,45 @@
 
   /* ───────────────── Buttons ───────────────── */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700
+           text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-all duration-150 border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50
+           text-gray-700 text-sm font-medium rounded-lg transition-all duration-150
+           border border-gray-200 shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700
+           text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-success {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700
+           text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 text-sm font-medium rounded-lg transition-all duration-150;
+    @apply inline-flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-gray-900
+           hover:bg-gray-100 text-sm font-medium rounded-lg transition-all duration-150;
   }
 
   /* ───────────────── Form Inputs ───────────────── */
   .input {
-    @apply w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-150;
+    @apply w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900
+           text-sm placeholder-gray-400 shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400
+           transition-all duration-150;
   }
 
   .label {
@@ -78,7 +92,6 @@
     @apply bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all duration-200;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.05);
   }
-
   .card-hover:hover {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
@@ -123,7 +136,9 @@
 
   /* ───────────────── Sidebar ───────────────── */
   .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-sm font-medium transition-all duration-150 cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600
+           hover:text-gray-900 hover:bg-gray-100 text-sm font-medium
+           transition-all duration-150 cursor-pointer;
   }
 
   .sidebar-link.active {
@@ -142,7 +157,8 @@
 
   /* ───────────────── Expiry Banner ───────────────── */
   .expiry-banner {
-    @apply sticky top-0 z-50 flex items-center gap-3 px-4 py-2.5 bg-red-50 border-b border-red-200 text-red-700 text-sm font-medium;
+    @apply sticky top-0 z-50 flex items-center gap-3 px-4 py-2.5
+           bg-red-50 border-b border-red-200 text-red-700 text-sm font-medium;
   }
 
   /* ───────────────── Stat number ───────────────── */
@@ -157,7 +173,6 @@
     opacity: 0;
     transform: translateY(-6px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -169,7 +184,6 @@
     opacity: 0;
     transform: translateY(12px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -177,12 +191,10 @@
 }
 
 @keyframes pulse-slow {
-
   0%,
   100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.5;
   }
@@ -191,11 +203,9 @@
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
-
 .animate-slide-up {
   animation: slideUp 0.25s ease-out;
 }
-
 .animate-pulse-slow {
   animation: pulse-slow 2s ease-in-out infinite;
 }
