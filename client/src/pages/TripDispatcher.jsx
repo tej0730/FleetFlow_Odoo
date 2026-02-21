@@ -1,399 +1,216 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import React, { useState, useMemo } from 'react';
+import { useVehicles } from '../hooks/useVehicles';
+import { useDrivers } from '../hooks/useDrivers';
+import { useTrips, useCreateTrip, useUpdateTripStatus } from '../hooks/useTrips';
 import StatusPill from '../components/StatusPill';
 
-export default function TripDispatcher() {
-  const queryClient = useQueryClient();
+const TripDispatcher = () => {
+  // Data Fetching
+  const { data: vehicles = [], isLoading: isLoadingVehicles } = useVehicles('Available');
+  const { data: drivers = [], isLoading: isLoadingDrivers } = useDrivers();
+  const { data: trips = [], isLoading: isLoadingTrips } = useTrips();
+  
+  const createTrip = useCreateTrip();
+  const updateStatus = useUpdateTripStatus();
 
-  // ─── Form State ───
-  const [vehicleId, setVehicleId] = useState('');
-  const [driverId, setDriverId] = useState('');
+  // Filter available drivers locally (assuming API returns all)
+  const availableDrivers = useMemo(() => 
+    drivers.filter(d => d.duty_status === 'Available' || d.duty_status === 'On Duty' || !d.duty_status), 
+  [drivers]);
+
+  // Form State
+  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [selectedDriver, setSelectedDriver] = useState('');
   const [cargoWeight, setCargoWeight] = useState('');
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
-  const [formError, setFormError] = useState('');
-  const [formSuccess, setFormSuccess] = useState('');
 
-  // ─── Data Queries ───
-  const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
-    queryKey: ['vehicles-available'],
-    queryFn: () => api.get('/vehicles?status=Available').then(r => r.data),
-    refetchInterval: 8000,
-  });
+  // Validation
+  const vehicle = vehicles.find(v => v.id.toString() === selectedVehicle);
+  const maxCapacity = vehicle ? vehicle.max_capacity_kg : 0;
+  const isOverweight = cargoWeight && vehicle && Number(cargoWeight) > maxCapacity;
+  
+  const isFormValid = selectedVehicle && selectedDriver && cargoWeight && origin && destination && !isOverweight;
 
-  const { data: allDrivers = [], isLoading: loadingDrivers } = useQuery({
-    queryKey: ['drivers-all'],
-    queryFn: () => api.get('/drivers').then(r => r.data),
-    refetchInterval: 8000,
-  });
-
-  const { data: trips = [], isLoading: loadingTrips } = useQuery({
-    queryKey: ['trips'],
-    queryFn: () => api.get('/trips').then(r => r.data),
-    refetchInterval: 8000,
-  });
-
-  // Also fetch all vehicles & drivers for table display (to show names)
-  const { data: allVehicles = [] } = useQuery({
-    queryKey: ['vehicles-all'],
-    queryFn: () => api.get('/vehicles').then(r => r.data),
-  });
-
-  // ─── Filter drivers: On Duty + valid (non-expired) license only ───
-  const eligibleDrivers = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return allDrivers.filter(d => {
-      const expiry = new Date(d.license_expiry);
-      return d.duty_status === 'On Duty' && expiry >= today;
-    });
-  }, [allDrivers]);
-
-  // ─── Selected vehicle's capacity ───
-  const selectedVehicle = vehicles.find(v => v.id === Number(vehicleId));
-  const maxCapacity = selectedVehicle?.max_capacity_kg || 0;
-  const cargoNum = Number(cargoWeight) || 0;
-  const capacityPercent = maxCapacity > 0 ? Math.min((cargoNum / maxCapacity) * 100, 100) : 0;
-  const isOverweight = cargoNum > maxCapacity && maxCapacity > 0;
-  const isNearCapacity = capacityPercent >= 90 && !isOverweight;
-
-  // ─── Mutations ───
-  const createTrip = useMutation({
-    mutationFn: (data) => api.post('/trips', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles-available'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['drivers-all'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      setFormSuccess('Trip created successfully!');
-      setTimeout(() => setFormSuccess(''), 3000);
-      resetForm();
-    },
-    onError: (err) => {
-      setFormError(err.response?.data?.error || 'Failed to create trip');
-    },
-  });
-
-  const updateTripStatus = useMutation({
-    mutationFn: ({ id, status }) => api.patch(`/trips/${id}/status`, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles-available'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles-all'] });
-      queryClient.invalidateQueries({ queryKey: ['drivers-all'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-    },
-  });
-
-  const resetForm = () => {
-    setVehicleId('');
-    setDriverId('');
-    setCargoWeight('');
-    setOrigin('');
-    setDestination('');
-    setFormError('');
-  };
-
+  // Handlers
   const handleSubmit = (e) => {
     e.preventDefault();
-    setFormError('');
-    setFormSuccess('');
-
-    if (!vehicleId || !driverId || !cargoWeight || !origin || !destination) {
-      setFormError('All fields are required');
-      return;
-    }
-    if (isOverweight) {
-      setFormError(`Cargo weight (${cargoNum}kg) exceeds vehicle max capacity (${maxCapacity}kg)`);
-      return;
-    }
-
+    if (!isFormValid) return;
+    
     createTrip.mutate({
-      vehicle_id: Number(vehicleId),
-      driver_id: Number(driverId),
-      cargo_weight_kg: cargoNum,
+      vehicle_id: selectedVehicle,
+      driver_id: selectedDriver,
+      cargo_weight_kg: Number(cargoWeight),
       origin,
-      destination,
+      destination
+    }, {
+      onSuccess: () => {
+        // Reset form
+        setSelectedVehicle('');
+        setSelectedDriver('');
+        setCargoWeight('');
+        setOrigin('');
+        setDestination('');
+      }
     });
   };
 
-  // ─── Helpers for table display ───
-  const getVehicleName = (id) => {
-    const v = allVehicles.find(v => v.id === id);
-    return v ? `${v.name} (${v.license_plate})` : `Vehicle #${id}`;
-  };
-
-  const getDriverName = (id) => {
-    const d = allDrivers.find(d => d.id === id);
-    return d ? d.name : `Driver #${id}`;
-  };
-
-  const getActions = (trip) => {
-    const btns = [];
-    if (trip.status === 'Draft') {
-      btns.push(
-        <button
-          key="dispatch"
-          className="btn btn-sm btn-dispatch"
-          onClick={() => updateTripStatus.mutate({ id: trip.id, status: 'Dispatched' })}
-          disabled={updateTripStatus.isPending}
-        >
-          🚀 Dispatch
-        </button>
-      );
-      btns.push(
-        <button
-          key="cancel"
-          className="btn btn-sm btn-cancel"
-          onClick={() => updateTripStatus.mutate({ id: trip.id, status: 'Cancelled' })}
-          disabled={updateTripStatus.isPending}
-        >
-          ✕ Cancel
-        </button>
-      );
-    } else if (trip.status === 'Dispatched') {
-      btns.push(
-        <button
-          key="complete"
-          className="btn btn-sm btn-complete"
-          onClick={() => updateTripStatus.mutate({ id: trip.id, status: 'Completed' })}
-          disabled={updateTripStatus.isPending}
-        >
-          ✓ Complete
-        </button>
-      );
-      btns.push(
-        <button
-          key="cancel"
-          className="btn btn-sm btn-cancel"
-          onClick={() => updateTripStatus.mutate({ id: trip.id, status: 'Cancelled' })}
-          disabled={updateTripStatus.isPending}
-        >
-          ✕ Cancel
-        </button>
-      );
-    }
-    return btns;
+  const handleStatusChange = (id, newStatus) => {
+    updateStatus.mutate({ id, status: newStatus });
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h2>Trip Dispatcher</h2>
-        <p>Create trips, assign vehicles & drivers, and manage dispatch lifecycle</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Trip Dispatcher</h1>
       </div>
 
-      {/* ═══ NEW TRIP FORM ═══ */}
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-          📋 Create New Trip
-        </h3>
-
-        {formError && (
-          <div style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            marginBottom: '1rem',
-            color: '#f87171',
-            fontSize: '0.8125rem',
-          }}>
-            ⚠️ {formError}
-          </div>
-        )}
-
-        {formSuccess && (
-          <div style={{
-            background: 'rgba(34,197,94,0.1)',
-            border: '1px solid rgba(34,197,94,0.2)',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            marginBottom: '1rem',
-            color: '#4ade80',
-            fontSize: '0.8125rem',
-          }}>
-            ✅ {formSuccess}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            {/* Vehicle Dropdown */}
-            <div className="form-group">
-              <label className="form-label">Vehicle (Available Only)</label>
-              <select
-                className="form-select"
-                value={vehicleId}
-                onChange={(e) => { setVehicleId(e.target.value); setFormError(''); }}
-              >
-                <option value="">Select a vehicle...</option>
-                {vehicles.map(v => (
-                  <option key={v.id} value={v.id}>
-                    {v.name} — {v.license_plate} (Max: {v.max_capacity_kg}kg)
-                  </option>
-                ))}
-              </select>
-              {vehicles.length === 0 && !loadingVehicles && (
-                <span className="form-warning">⚠️ No available vehicles</span>
-              )}
-            </div>
-
-            {/* Driver Dropdown */}
-            <div className="form-group">
-              <label className="form-label">Driver (On Duty + Valid License)</label>
-              <select
-                className="form-select"
-                value={driverId}
-                onChange={(e) => { setDriverId(e.target.value); setFormError(''); }}
-              >
-                <option value="">Select a driver...</option>
-                {eligibleDrivers.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} — License: {d.license_number}
-                  </option>
-                ))}
-              </select>
-              {eligibleDrivers.length === 0 && !loadingDrivers && (
-                <span className="form-warning">⚠️ No eligible drivers (On Duty + valid license)</span>
-              )}
-            </div>
-
-            {/* Cargo Weight */}
-            <div className="form-group">
-              <label className="form-label">Cargo Weight (kg)</label>
-              <input
-                type="number"
-                className={`form-input ${isOverweight ? 'error' : ''}`}
-                placeholder="Enter cargo weight in kg"
-                value={cargoWeight}
-                onChange={(e) => { setCargoWeight(e.target.value); setFormError(''); }}
-                min="1"
-              />
-              {selectedVehicle && cargoNum > 0 && (
-                <div className="capacity-bar-wrapper">
-                  <div className="capacity-bar">
-                    <div
-                      className={`capacity-bar-fill ${isOverweight ? 'danger' : isNearCapacity ? 'warning' : 'safe'}`}
-                      style={{ width: `${Math.min(capacityPercent, 100)}%` }}
-                    />
-                  </div>
-                  <span className="capacity-text">
-                    {cargoNum} / {maxCapacity} kg ({Math.round(capacityPercent)}%)
-                  </span>
-                </div>
-              )}
-              {isOverweight && (
-                <span className="form-error">
-                  ❌ Exceeds vehicle capacity by {cargoNum - maxCapacity}kg — submission blocked
-                </span>
-              )}
-              {isNearCapacity && (
-                <span className="form-warning">
-                  ⚡ Approaching max capacity ({Math.round(capacityPercent)}%)
-                </span>
-              )}
-            </div>
-
-            {/* Origin */}
-            <div className="form-group">
-              <label className="form-label">Origin</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Mumbai Warehouse"
-                value={origin}
-                onChange={(e) => setOrigin(e.target.value)}
-              />
-            </div>
-
-            {/* Destination */}
-            <div className="form-group">
-              <label className="form-label">Destination</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Delhi Distribution Center"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-              />
-            </div>
+      {/* Dispatch Form Card */}
+      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Create New Trip</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
+          
+          <div className="space-y-1 lg:col-span-1">
+            <label className="block text-sm font-medium text-gray-700">Vehicle</label>
+            <select
+              value={selectedVehicle}
+              onChange={(e) => setSelectedVehicle(e.target.value)}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+              required
+            >
+              <option value="">Select Vehicle</option>
+              {vehicles.map(v => (
+                <option key={v.id} value={v.id}>
+                  {v.name} (Max: {v.max_capacity_kg}kg)
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div style={{ marginTop: '0.5rem' }}>
+          <div className="space-y-1 lg:col-span-1">
+            <label className="block text-sm font-medium text-gray-700">Driver</label>
+            <select
+              value={selectedDriver}
+              onChange={(e) => setSelectedDriver(e.target.value)}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+              required
+            >
+              <option value="">Select Driver</option>
+              {availableDrivers.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1 lg:col-span-1">
+            <label className="block text-sm font-medium text-gray-700">Cargo Weight (kg)</label>
+            <input
+              type="number"
+              value={cargoWeight}
+              onChange={(e) => setCargoWeight(e.target.value)}
+              className={`mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border ${isOverweight ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+              placeholder="e.g. 1500"
+              required
+            />
+            {isOverweight && (
+              <p className="text-xs text-red-600 mt-1">Exceeds vehicle capacity ({maxCapacity}kg)!</p>
+            )}
+          </div>
+
+          <div className="space-y-1 lg:col-span-1">
+            <label className="block text-sm font-medium text-gray-700">Origin</label>
+            <input
+              type="text"
+              value={origin}
+              onChange={(e) => setOrigin(e.target.value)}
+              className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+              placeholder="City A"
+              required
+            />
+          </div>
+
+          <div className="space-y-1 lg:col-span-1">
+            <label className="block text-sm font-medium text-gray-700">Destination</label>
+            <input
+              type="text"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+              placeholder="City B"
+              required
+            />
+          </div>
+
+          <div className="lg:col-span-5 flex justify-end mt-2">
             <button
               type="submit"
-              className="btn btn-primary"
-              disabled={createTrip.isPending || isOverweight || !vehicleId || !driverId}
+              disabled={!isFormValid || createTrip.isPending}
+              className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              {createTrip.isPending ? '⏳ Creating...' : '🚀 Create Trip'}
+              {createTrip.isPending ? 'Dispatching...' : 'Dispatch Trip'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* ═══ TRIPS TABLE ═══ */}
-      <div className="card">
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-          📦 All Trips
-        </h3>
-
-        {loadingTrips ? (
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            Loading trips...
-          </div>
-        ) : trips.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🗺️</div>
-            <p>No trips yet. Create your first trip above!</p>
-          </div>
-        ) : (
-          <div className="data-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Vehicle</th>
-                  <th>Driver</th>
-                  <th>Origin</th>
-                  <th>Destination</th>
-                  <th>Cargo (kg)</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {trips.map(trip => (
-                  <tr key={trip.id}>
-                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>#{trip.id}</td>
-                    <td>{getVehicleName(trip.vehicle_id)}</td>
-                    <td>{getDriverName(trip.driver_id)}</td>
-                    <td>{trip.origin}</td>
-                    <td>{trip.destination}</td>
-                    <td style={{ fontWeight: 600 }}>{trip.cargo_weight_kg} kg</td>
-                    <td><StatusPill status={trip.status} /></td>
-                    <td>{new Date(trip.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <div className="action-btns">
-                        {getActions(trip)}
-                        {(trip.status === 'Completed' || trip.status === 'Cancelled') && (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontStyle: 'italic' }}>
-                            {trip.status === 'Completed' ? '✓ Done' : '— Cancelled'}
-                          </span>
-                        )}
-                      </div>
+      {/* Trips Table Card */}
+      <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-800">Active & Recent Trips</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle/Driver</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {isLoadingTrips ? (
+                <tr><td colSpan="6" className="text-center py-4 text-gray-500">Loading trips...</td></tr>
+              ) : trips.length === 0 ? (
+                <tr><td colSpan="6" className="text-center py-4 text-gray-500">No trips found.</td></tr>
+              ) : (
+                trips.map(trip => (
+                  <tr key={trip.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">#{trip.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">V: {trip.vehicle_name || trip.vehicle_id}</div>
+                      <div className="text-sm text-gray-500">D: {trip.driver_name || trip.driver_id}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{trip.origin}</div>
+                      <div className="text-xs text-gray-500">to {trip.destination}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.cargo_weight_kg} kg</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusPill status={trip.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      {trip.status === 'Draft' && (
+                        <button onClick={() => handleStatusChange(trip.id, 'Dispatched')} className="text-blue-600 hover:text-blue-900">Dispatch</button>
+                      )}
+                      {(trip.status === 'Draft' || trip.status === 'Dispatched') && (
+                        <button onClick={() => handleStatusChange(trip.id, 'Cancelled')} className="text-red-600 hover:text-red-900">Cancel</button>
+                      )}
+                      {trip.status === 'Dispatched' && (
+                        <button onClick={() => handleStatusChange(trip.id, 'Completed')} className="text-green-600 hover:text-green-900">Complete</button>
+                      )}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default TripDispatcher;
