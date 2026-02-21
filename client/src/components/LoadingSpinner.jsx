@@ -13,7 +13,7 @@ export default function LoadingSpinner({ size = 'md', className }) {
     <div
       className={cn(
         sizeClass,
-        'rounded-full border-slate-700 border-t-blue-500 animate-spin',
+        'rounded-full border-gray-200 border-t-indigo-600 animate-spin',
         className
       )}
     />
