@@ -10,12 +10,13 @@ const vehicleSchema = Joi.object({
     license_plate: Joi.string().required(),
     type: Joi.string().valid('Truck', 'Van', 'Bike').required(),
     max_capacity_kg: Joi.number().integer().min(1).required(),
-    acquisition_cost: Joi.number().precision(2).optional()
+    acquisition_cost: Joi.number().precision(2).optional(),
+    region: Joi.string().optional()
 });
 
 router.get('/', authenticateToken, async (req, res) => {
     try {
-        const { status, type } = req.query;
+        const { status, type, region } = req.query;
         let query = 'SELECT * FROM vehicles WHERE 1=1';
         const params = [];
 
@@ -26,6 +27,10 @@ router.get('/', authenticateToken, async (req, res) => {
         if (type) {
             params.push(type);
             query += ` AND type = $${params.length}`;
+        }
+        if (region) {
+            params.push(region);
+            query += ` AND region = $${params.length}`;
         }
 
         query += ' ORDER BY id ASC';
@@ -56,7 +61,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
 router.post('/', authenticateToken, validateRequest(vehicleSchema), async (req, res) => {
     try {
-        const { name, license_plate, type, max_capacity_kg, acquisition_cost } = req.body;
+        const { name, license_plate, type, max_capacity_kg, acquisition_cost, region } = req.body;
 
         const checkResult = await pool.query('SELECT * FROM vehicles WHERE license_plate = $1', [license_plate]);
         if (checkResult.rows.length > 0) {
@@ -64,9 +69,9 @@ router.post('/', authenticateToken, validateRequest(vehicleSchema), async (req, 
         }
 
         const result = await pool.query(
-            `INSERT INTO vehicles (name, license_plate, type, max_capacity_kg, acquisition_cost) 
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [name, license_plate, type, max_capacity_kg, acquisition_cost || null]
+            `INSERT INTO vehicles (name, license_plate, type, max_capacity_kg, acquisition_cost, region) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [name, license_plate, type, max_capacity_kg, acquisition_cost || null, region || 'North America']
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

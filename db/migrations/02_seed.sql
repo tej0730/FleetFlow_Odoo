@@ -10,12 +10,12 @@ INSERT INTO users (name, email, password_hash, role) VALUES
 ('Diana Analyst', 'analyst@fleetflow.test', '$2b$10$EP0M5L68kX3S2W.G37eKqO9v3K/98H5UInI3Jm2VREmQx.Q8A2Hwy', 'analyst');
 
 -- 2. Insert 5 Vehicles
-INSERT INTO vehicles (name, license_plate, type, max_capacity_kg, odometer, status, acquisition_cost) VALUES
-('Toyota Van-01', 'VAN-101', 'Van', 1000, 15000, 'Available', 25000.00),
-('Ford Truck-02', 'TRK-202', 'Truck', 5000, 42000, 'On Trip', 85000.00),
-('Honda Bike-03', 'BIK-303', 'Bike', 100, 5000, 'Available', 5000.00),
-('Mercedes Van-04', 'VAN-404', 'Van', 1200, 80000, 'In Shop', 30000.00),
-('Volvo Truck-05', 'TRK-505', 'Truck', 8000, 120000, 'Retired', 110000.00);
+INSERT INTO vehicles (name, license_plate, type, max_capacity_kg, odometer, status, acquisition_cost, region) VALUES
+('Toyota Van-01', 'VAN-101', 'Van', 1000, 15000, 'Available', 25000.00, 'North America'),
+('Ford Truck-02', 'TRK-202', 'Truck', 5000, 42000, 'On Trip', 85000.00, 'Europe'),
+('Honda Bike-03', 'BIK-303', 'Bike', 100, 5000, 'Available', 5000.00, 'Asia-Pacific'),
+('Mercedes Van-04', 'VAN-404', 'Van', 1200, 80000, 'In Shop', 30000.00, 'North America'),
+('Volvo Truck-05', 'TRK-505', 'Truck', 8000, 120000, 'Retired', 110000.00, 'Europe');
 
 -- 3. Insert 5 Drivers (1 with expired license)
 INSERT INTO drivers (name, license_number, license_expiry, duty_status, trips_completed, trips_total, safety_score) VALUES
@@ -41,3 +41,9 @@ INSERT INTO maintenance_logs (vehicle_id, service_type, cost, date, notes, statu
 (1, 'Oil Change', 85.00, CURRENT_DATE - INTERVAL '15 days', 'Routine maintenance', 'Closed'),
 (4, 'Brake Replacement', 450.00, CURRENT_DATE - INTERVAL '2 days', 'Pads and rotors replaced', 'Open'),
 (5, 'Engine Overhaul', 5000.00, CURRENT_DATE - INTERVAL '1 month', 'Vehicle retired shortly after', 'Closed');
+
+-- 6. Insert Fuel Logs
+INSERT INTO fuel_logs (vehicle_id, liters, cost, date) VALUES
+(1, 50.5, 75.00, CURRENT_DATE - INTERVAL '4 days'),
+(2, 200.0, 310.00, CURRENT_DATE - INTERVAL '2 days'),
+(3, 15.0, 22.50, CURRENT_DATE - INTERVAL '1 day');
