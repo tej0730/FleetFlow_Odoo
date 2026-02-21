@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { applyMockAdapter } from './mockApi';
 
 const api = axios.create({
   baseURL: '/api',
@@ -7,8 +6,26 @@ const api = axios.create({
   timeout: 15000,
 })
 
-// Enable mock backend for testing without DB
-applyMockAdapter(api);
+// ─── Smart Backend Detection ───────────────────────────
+// If the real backend is unreachable, fall back to mock data
+// so the frontend can be demoed without PostgreSQL running.
+// When the backend team merges and runs with a live DB,
+// this mock adapter is automatically skipped.
+// ────────────────────────────────────────────────────────
+async function initApiMode() {
+  try {
+    // Quick health check — if the backend responds, use real API
+    await axios.get('/api/vehicles', { timeout: 2000 })
+    console.log('✅ Connected to real backend API')
+  } catch {
+    // Backend unreachable — enable mock adapter for offline demo
+    console.warn('⚠️ Backend unreachable — using mock data for demo')
+    const { applyMockAdapter } = await import('./mockApi')
+    applyMockAdapter(api)
+  }
+}
+
+initApiMode()
 
 // Request interceptor — attach JWT token
 api.interceptors.request.use(
@@ -30,7 +47,7 @@ api.interceptors.response.use(
       localStorage.removeItem('fleetflow_token')
       localStorage.removeItem('fleetflow_user')
       if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+        window.location.href = '/login'
       }
     }
     return Promise.reject(error)
