@@ -74,10 +74,15 @@ export default function Analytics() {
 
       {/* Summary Stat Cards */}
       {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatCard label="Fleet Utilization" value={`${summary.utilizationRate}%`} />
           <StatCard label="Total Acq. Cost" value={formatCurrency(summary.totalAcquisitionCost)} />
           <StatCard label="Avg Cost / Vehicle" value={formatCurrency(summary.fleetCostPerVehicle)} />
+          <StatCard 
+            label="Fuel Efficiency" 
+            value="— km/L" 
+            note="km/L tracking requires the new Trip Logging module (Member C) to capture actual liters consumed per trip."
+          />
         </div>
       )}
 
@@ -156,11 +161,17 @@ export default function Analytics() {
   )
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, value, note }) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 relative group">
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{label}</p>
       <p className="text-2xl font-bold text-indigo-700">{value}</p>
+      {note && (
+        <div className="absolute top-full right-0 mt-2 w-48 p-2.5 bg-gray-900/95 backdrop-blur-sm text-white text-[10px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+          <span className="font-semibold block mb-1 text-amber-300">Data Missing</span>
+          {note}
+        </div>
+      )}
     </div>
   )
 }
