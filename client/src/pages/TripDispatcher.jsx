@@ -1,21 +1,12 @@
-/* ─────────────────────────────────────────────────────────
-   TripDispatcher.jsx
-   OWNER: Member C — Trip Dispatcher & Core Logic
-
-   Features:
-     - Vehicle dropdown (Available only)
-     - Driver dropdown (On Duty + valid license only)
-     - Cargo weight input with live capacity validation
-     - Trips table with status pills + action buttons
-     - Wired to PATCH /api/trips/:id/status for atomic status changes
-──────────────────────────────────────────────────────────── */
 import { useState, useMemo } from 'react'
-import { MapPin, Plus, Send, XCircle, CheckCircle2 } from 'lucide-react'
+import { MapPin, Plus, Send, XCircle, CheckCircle2, Fuel } from 'lucide-react'
 import { useVehicles } from '../hooks/useVehicles'
 import { useDrivers } from '../hooks/useDrivers'
 import { useTrips, useCreateTrip, useUpdateTripStatus } from '../hooks/useTrips'
 import StatusPill from '../components/StatusPill'
+import Modal from '../components/Modal'
 import toast from 'react-hot-toast'
+import api from '../lib/api'
 
 export default function TripDispatcher() {
   // Data Fetching
@@ -42,6 +33,11 @@ export default function TripDispatcher() {
   const [cargoWeight, setCargoWeight] = useState('')
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
+
+  // Fuel Logging Modal State
+  const [fuelModal, setFuelModal] = useState({ open: false, tripId: null })
+  const [fuelData, setFuelData] = useState({ liters: '', cost: '', odometer: '', date: new Date().toISOString().split('T')[0] })
+  const [fuelSaving, setFuelSaving] = useState(false)
 
   // Validation
   const vehicle = vehicles.find(v => v.id.toString() === selectedVehicle)
@@ -80,9 +76,54 @@ export default function TripDispatcher() {
   }
 
   const handleStatusChange = (id, newStatus) => {
+    // If completing, open fuel logging modal first
+    if (newStatus === 'Completed') {
+      setFuelModal({ open: true, tripId: id })
+      setFuelData({ liters: '', cost: '', odometer: '', date: new Date().toISOString().split('T')[0] })
+      return
+    }
     updateStatus.mutate({ id, status: newStatus }, {
       onSuccess: () => toast.success(`Trip ${newStatus.toLowerCase()}`),
       onError: (err) => toast.error(err.response?.data?.error || 'Failed to update')
+    })
+  }
+
+  // Submit fuel log + complete trip
+  const handleFuelSubmit = async (e) => {
+    e.preventDefault()
+    setFuelSaving(true)
+    try {
+      // 1. Log fuel data
+      await api.post('/fuel-logs', {
+        trip_id: fuelModal.tripId,
+        liters: Number(fuelData.liters),
+        cost: Number(fuelData.cost),
+        odometer_reading: Number(fuelData.odometer),
+        date: fuelData.date
+      })
+      // 2. Complete the trip
+      updateStatus.mutate({ id: fuelModal.tripId, status: 'Completed' }, {
+        onSuccess: () => {
+          toast.success('Trip completed with fuel log recorded!')
+          setFuelModal({ open: false, tripId: null })
+        },
+        onError: (err) => toast.error(err.response?.data?.error || 'Failed to complete trip')
+      })
+    } catch (err) {
+      toast.error('Failed to save fuel log')
+    } finally {
+      setFuelSaving(false)
+    }
+  }
+
+  // Skip fuel logging and just complete
+  const handleSkipFuel = () => {
+    updateStatus.mutate({ id: fuelModal.tripId, status: 'Completed' }, {
+      onSuccess: () => {
+        toast.success('Trip completed (no fuel log)')
+        setFuelModal({ open: false, tripId: null })
+      },
+      onError: (err) => toast.error(err.response?.data?.error || 'Failed to complete trip')
     })
   }
 
@@ -98,6 +139,39 @@ export default function TripDispatcher() {
           <p className="page-subtitle">Assign vehicles & drivers to deliveries</p>
         </div>
       </div>
+
+      {/* Fuel Logging Modal — appears when completing a trip */}
+      <Modal isOpen={fuelModal.open} onClose={() => setFuelModal({ open: false, tripId: null })} title="Complete Trip — Log Fuel & Expense">
+        <p className="text-sm text-gray-500 mb-4">Record fuel consumption for this trip. You can also skip if data is not available.</p>
+        <form onSubmit={handleFuelSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Fuel (Liters)</label>
+              <input type="number" step="0.1" min="0" className="input" placeholder="e.g. 45.5" value={fuelData.liters} onChange={e => setFuelData(p => ({ ...p, liters: e.target.value }))} required />
+            </div>
+            <div>
+              <label className="label">Fuel Cost ($)</label>
+              <input type="number" step="0.01" min="0" className="input" placeholder="e.g. 78.50" value={fuelData.cost} onChange={e => setFuelData(p => ({ ...p, cost: e.target.value }))} required />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Odometer Reading (km)</label>
+              <input type="number" min="0" className="input" placeholder="e.g. 45230" value={fuelData.odometer} onChange={e => setFuelData(p => ({ ...p, odometer: e.target.value }))} required />
+            </div>
+            <div>
+              <label className="label">Date</label>
+              <input type="date" className="input" value={fuelData.date} onChange={e => setFuelData(p => ({ ...p, date: e.target.value }))} required />
+            </div>
+          </div>
+          <div className="flex justify-between pt-2">
+            <button type="button" onClick={handleSkipFuel} className="btn-ghost text-gray-500">Skip — Complete Without Log</button>
+            <button type="submit" disabled={fuelSaving} className="btn-success">
+              <Fuel className="w-4 h-4" /> {fuelSaving ? 'Saving...' : 'Log & Complete'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Dispatch Form Card */}
       <div className="card mb-6">
@@ -198,15 +272,16 @@ export default function TripDispatcher() {
               <th>Vehicle / Driver</th>
               <th>Route</th>
               <th>Cargo</th>
+              <th>Fuel</th>
               <th>Status</th>
               <th className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoadingTrips ? (
-              <tr><td colSpan="6" className="text-center py-8 text-gray-400">Loading trips...</td></tr>
+              <tr><td colSpan="7" className="text-center py-8 text-gray-400">Loading trips...</td></tr>
             ) : trips.length === 0 ? (
-              <tr><td colSpan="6" className="text-center py-8 text-gray-400">No trips found. Create one above.</td></tr>
+              <tr><td colSpan="7" className="text-center py-8 text-gray-400">No trips found. Create one above.</td></tr>
             ) : (
               trips.map(trip => (
                 <tr key={trip.id}>
@@ -220,6 +295,18 @@ export default function TripDispatcher() {
                     <div className="text-xs text-gray-500">→ {trip.destination}</div>
                   </td>
                   <td className="text-gray-700">{trip.cargo_weight_kg} kg</td>
+                  <td>
+                    {trip.fuel_liters ? (
+                      <div>
+                        <div className="text-sm text-gray-900">{trip.fuel_liters}L · ${trip.fuel_cost}</div>
+                        {trip.fuel_efficiency && (
+                          <div className="text-xs text-emerald-600 font-medium">{trip.fuel_efficiency} km/L</div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
+                  </td>
                   <td><StatusPill status={trip.status} /></td>
                   <td className="text-right">
                     <div className="flex items-center justify-end gap-1">
