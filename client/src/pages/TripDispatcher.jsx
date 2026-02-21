@@ -110,8 +110,8 @@ export default function TripDispatcher() {
       {/* Dispatch Form Card */}
       <div className="card mb-6">
         <div className="flex items-center gap-2 mb-5">
-          <Plus className="w-4 h-4 text-blue-400" />
-          <h2 className="text-sm font-semibold text-white">Create New Trip</h2>
+          <Plus className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-slate-900">Create New Trip</h2>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -152,8 +152,8 @@ export default function TripDispatcher() {
               />
               {/* Capacity bar */}
               {vehicle && cargoWeight && (
-                <div className="mt-2">
-                  <div className="w-full bg-slate-700 rounded-full h-1.5">
+                <div className="mt-2 text-slate-700">
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div
                       className={`h-1.5 rounded-full transition-all duration-300 ${
                         isOverweight ? 'bg-red-500' : isNearCapacity ? 'bg-amber-500' : 'bg-emerald-500'
@@ -161,7 +161,7 @@ export default function TripDispatcher() {
                       style={{ width: `${Math.min(capacityPercent, 100)}%` }}
                     />
                   </div>
-                  <p className={`text-xs mt-1 ${isOverweight ? 'text-red-400' : isNearCapacity ? 'text-amber-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 font-semibold ${isOverweight ? 'text-red-500' : isNearCapacity ? 'text-amber-500' : 'text-slate-500'}`}>
                     {isOverweight 
                       ? `⚠️ Exceeds capacity by ${cargoNum - maxCapacity}kg!`
                       : `${cargoNum}/${maxCapacity}kg (${Math.round(capacityPercent)}%)`
@@ -184,12 +184,12 @@ export default function TripDispatcher() {
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end pt-2">
+      {/* Submit */}
+          <div className="flex justify-end pt-4">
             <button
               type="submit"
               disabled={!isFormValid || createTrip.isPending}
-              className="btn-primary"
+              className="btn-primary py-2.5 px-6"
             >
               <Send className="w-4 h-4" />
               {createTrip.isPending ? 'Creating...' : 'Dispatch Trip'}
@@ -199,10 +199,10 @@ export default function TripDispatcher() {
       </div>
 
       {/* Trips Table */}
-      <div className="card p-0">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-slate-800">
-          <MapPin className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-semibold text-white">Active & Recent Trips</h3>
+      <div className="card p-0 overflow-hidden">
+        <div className="flex items-center gap-2 px-6 py-5 border-b border-slate-200 bg-slate-50/50">
+          <MapPin className="w-5 h-5 text-brand-500" />
+          <h3 className="text-lg font-bold text-slate-900">Active & Recent Trips</h3>
         </div>
 
         <div className="table-wrapper border-0 rounded-none">
@@ -225,32 +225,32 @@ export default function TripDispatcher() {
               ) : (
                 trips.map(trip => (
                   <tr key={trip.id}>
-                    <td className="font-mono text-slate-400">#{trip.id}</td>
+                    <td className="font-mono text-slate-500 font-medium">#{trip.id}</td>
                     <td>
-                      <div className="text-sm text-slate-200">{trip.vehicle_name || getVehicleName(trip.vehicle_id)}</div>
-                      <div className="text-xs text-slate-500">{trip.driver_name || getDriverName(trip.driver_id)}</div>
+                      <div className="text-sm font-bold text-slate-900">{trip.vehicle_name || getVehicleName(trip.vehicle_id)}</div>
+                      <div className="text-xs font-semibold text-slate-500 mt-0.5">{trip.driver_name || getDriverName(trip.driver_id)}</div>
                     </td>
                     <td>
-                      <div className="text-sm text-slate-200">{trip.origin}</div>
-                      <div className="text-xs text-slate-500">→ {trip.destination}</div>
+                      <div className="text-sm font-semibold text-slate-700">{trip.origin}</div>
+                      <div className="text-xs font-medium text-slate-500 mt-0.5">→ {trip.destination}</div>
                     </td>
-                    <td className="text-slate-300">{trip.cargo_weight_kg} kg</td>
+                    <td className="text-slate-700 font-bold">{trip.cargo_weight_kg} kg</td>
                     <td><StatusPill status={trip.status} /></td>
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {trip.status === 'Draft' && (
-                          <button onClick={() => handleStatusChange(trip.id, 'Dispatched')} className="btn-ghost text-blue-400 hover:text-blue-300">
-                            <Send className="w-3.5 h-3.5" /> Dispatch
+                          <button onClick={() => handleStatusChange(trip.id, 'Dispatched')} className="btn-ghost text-brand-600 hover:text-brand-700 hover:bg-brand-50">
+                            <Send className="w-4 h-4" /> Dispatch
                           </button>
                         )}
                         {trip.status === 'Dispatched' && (
-                          <button onClick={() => handleStatusChange(trip.id, 'Completed')} className="btn-ghost text-emerald-400 hover:text-emerald-300">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Complete
+                          <button onClick={() => handleStatusChange(trip.id, 'Completed')} className="btn-ghost text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                            <CheckCircle2 className="w-4 h-4" /> Complete
                           </button>
                         )}
                         {(trip.status === 'Draft' || trip.status === 'Dispatched') && (
-                          <button onClick={() => handleStatusChange(trip.id, 'Cancelled')} className="btn-ghost text-red-400 hover:text-red-300">
-                            <XCircle className="w-3.5 h-3.5" /> Cancel
+                          <button onClick={() => handleStatusChange(trip.id, 'Cancelled')} className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <XCircle className="w-4 h-4" /> Cancel
                           </button>
                         )}
                       </div>

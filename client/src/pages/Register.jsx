@@ -201,7 +201,7 @@ export default function Register() {
                     >
                       <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-bold leading-none mb-1.5">{label}</p>
+                        <p className={`text-xs font-bold leading-none mb-1.5 ${isActive ? 'text-white' : ''}`}>{label}</p>
                         <p className={`text-[10px] leading-tight font-medium ${isActive ? 'text-white/90' : 'text-slate-500'}`}>
                           {description}
                         </p>
