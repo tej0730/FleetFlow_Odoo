@@ -104,34 +104,41 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen relative flex items-center justify-center p-6 bg-[#f8fafc] overflow-hidden">
+      {/* Background Decorative Blobs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] rounded-full bg-brand-400/20 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
+
+      <div className="w-full max-w-md animate-fade-in relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 shadow-lg mb-4">
-            <Zap className="w-7 h-7 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-xl mb-5 hover:scale-105 transition-transform duration-300">
+            <Zap className="w-8 h-8 text-white drop-shadow-md" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">FleetFlow</h1>
-          <p className="text-gray-500 text-sm mt-1.5">Modular Fleet & Logistics Management</p>
+          <h1 className="text-4xl font-display font-extrabold text-slate-900 tracking-tight">FleetFlow</h1>
+          <p className="text-slate-500 font-medium text-sm mt-2">Modular Fleet & Logistics Management</p>
         </div>
 
-        {/* Main Card */}
-        <div className="card shadow-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-gray-900">Sign in</h2>
-            <Link to="/register" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline">
-              New user? Create account →
+        {/* Card */}
+        <div className="glass-panel rounded-2xl p-8 backdrop-blur-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Sign In</h2>
+            <Link
+              to="/register"
+              className="text-xs text-brand-600 hover:text-brand-700 font-bold hover:underline"
+            >
+              New user? Create account &rarr;
             </Link>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
             <div>
-              <label htmlFor="email" className="label">Email Address</label>
+              <label className="label">Email Address</label>
               <input
                 id="email"
                 type="email"
-                placeholder="email@fleetflow.test"
-                className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                placeholder="you@company.com"
+                className={`input-glass ${errors.email ? 'border-red-400 ring-1 ring-red-400/50' : ''}`}
                 {...register('email', {
                   required: 'Email is required',
                   pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' }
@@ -141,12 +148,12 @@ export default function Login() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="label !mb-0">Password</label>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="label !mb-0">Password</label>
                 <button 
                   type="button" 
                   onClick={() => setIsResetModalOpen(true)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold hover:underline"
+                  className="text-[11px] text-brand-600 hover:text-brand-700 font-bold hover:underline transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -155,14 +162,17 @@ export default function Login() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="password123"
-                  className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
-                  {...register('password', { required: 'Password is required' })}
+                  placeholder="••••••••"
+                  className={`input-glass pr-10 ${errors.password ? 'border-red-400 ring-1 ring-red-400/50' : ''}`}
+                  {...register('password', {
+                    required: 'Password is required',
+                    minLength: { value: 6, message: 'Password must be 6+ chars' }
+                  })}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -172,36 +182,37 @@ export default function Login() {
             </div>
 
             <button
+              id="login-btn"
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full justify-center py-2.5 text-sm font-semibold"
+              className="btn-primary w-full justify-center py-3 text-sm font-bold shadow-lg shadow-brand-500/30"
             >
-              {isLoading ? <><LoadingSpinner size="sm" /> Signing in...</> : 'Sign in'}
+              {isLoading ? <><LoadingSpinner size="sm" /> Signing in...</> : 'Sign in to FleetFlow'}
             </button>
           </form>
 
           {/* Role selector */}
-          <div className="mt-5">
-            <p className="text-xs text-gray-400 text-center mb-3 font-medium uppercase tracking-wider">Quick login — click a role</p>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="mt-8 pt-6 border-t border-slate-200/50">
+            <p className="text-[10px] text-slate-400 text-center mb-3 font-bold uppercase tracking-widest">Quick login — click a role</p>
+            <div className="grid grid-cols-2 gap-2.5">
               {DEMO_ROLES.map(({ email, role, icon: Icon, color }) => (
                 <button
                   key={email}
                   type="button"
                   onClick={() => fillCredentials(email)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-all hover:scale-[1.02] ${color}`}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border bg-white/50 backdrop-blur-sm text-left text-xs font-bold transition-all hover:scale-[1.03] hover:shadow-md ${color}`}
                 >
-                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <Icon className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{role}</span>
                 </button>
               ))}
             </div>
-            <p className="text-center text-[10px] text-gray-400 mt-2">Password for all: <code className="font-mono bg-gray-100 px-1 py-0.5 rounded">password123</code></p>
+            <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">Password for all: <code className="font-mono bg-slate-100/80 px-1.5 py-0.5 rounded text-slate-600">password123</code></p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-5">
-          FleetFlow v1.0 · Built for Odoo Hackathon 2025
+        <p className="text-center text-xs font-medium text-slate-400 mt-8">
+          FleetFlow v1.0 &middot; Built for Odoo Hackathon 2025
         </p>
       </div>
 
