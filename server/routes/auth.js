@@ -56,7 +56,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
 
         const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userExists.rows.length > 0) {
-            return res.status(400).json({ error: 'User already exists' });
+            return res.status(409).json({ error: 'User already exists' });
         }
 
         const saltRounds = 10;
@@ -85,3 +85,4 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
 });
 
 module.exports = router;
+

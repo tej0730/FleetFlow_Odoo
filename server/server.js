@@ -18,17 +18,6 @@ app.use('/api/trips', require('./routes/trips'));
 app.use('/api/maintenance', require('./routes/maintenance'));
 app.use('/api/analytics', require('./routes/analytics')); // also houses /api/reports/monthly
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-    console.error('Unhandled Error:', err);
-    res.status(500).json({ error: 'An unexpected internal server error occurred' });
-});
-
-// 404 Handler
-app.use((req, res) => {
-    res.status(404).json({ error: 'API endpoint not found' });
-});
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
