@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
@@ -53,7 +53,12 @@ export default function Login() {
 
         {/* Main Card */}
         <div className="card shadow-lg border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-5">Sign in to your account</h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-gray-900">Sign in</h2>
+            <Link to="/register" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline">
+              New user? Create account →
+            </Link>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <div>
