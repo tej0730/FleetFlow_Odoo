@@ -74,7 +74,7 @@ cd ../client && npm run dev
 - Atomic status flips (dispatching a trip → vehicle becomes "On Trip")
 
 ### Member B — Frontend Lead
-- React + Vite project setup with TailwindCSS dark theme design system
+- React + Vite project setup with TailwindCSS light theme design system
 - Login page with JWT authentication flow
 - Dashboard with 4 KPI cards (auto-refresh every 8s)
 - Sidebar layout + protected routing
