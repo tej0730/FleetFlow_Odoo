@@ -105,8 +105,9 @@ http://localhost:5173
 | GET    | `/api/maintenance`           | ✅   | All logs (`?vehicle_id=` filter)                      |
 | POST   | `/api/maintenance`           | ✅   | Create log + set vehicle → In Shop (atomic)           |
 | PATCH  | `/api/maintenance/:id/close` | ✅   | Close log + set vehicle → Available (atomic)          |
-| GET    | `/api/analytics/summary`     | ✅   | Utilization %, status breakdown                       |
+| GET    | `/api/analytics/summary`     | ✅   | Utilization %, status breakdown, avg fuel efficiency  |
 | GET    | `/api/reports/monthly`       | ✅   | Monthly revenue, fuel, maintenance costs              |
+| POST   | `/api/fuel-logs`             | ✅   | Record fuel liters, cost, odometer per trip (Member C)|
 
 All protected routes require: `Authorization: Bearer <JWT_TOKEN>`
 
@@ -153,6 +154,8 @@ feat/drivers-maint     ← Member D
 | **Inline Cargo Validation** | Yellow warning as you type; submit blocked if over limit               | Prevents operational errors |
 | **License Expiry Banner**   | Red sticky banner follows across ALL pages for any expiring driver     | Proactive safety thinking   |
 | **Fleet Health Score**      | `(available/total)*100` shown as % on dashboard                        | One number, instant insight |
+| **Fuel Logging on Complete**| Modal prompts for liters, cost, odometer when completing trip          | Tracks real fuel efficiency |
+| **Vehicle Retire/Restore**  | One-click retire or restore button on Vehicle Registry                 | Full asset lifecycle mgmt   |
 
 ---
 
@@ -172,11 +175,11 @@ feat/drivers-maint     ← Member D
 | `src/components/Modal.jsx`      | Generic modal with ESC/backdrop close                          |
 | `src/pages/Login.jsx`           | Auth page with validation + demo credentials                   |
 | `src/pages/Dashboard.jsx`       | 4 KPI cards with 8s auto-refresh                               |
-| `src/pages/VehicleRegistry.jsx` | Vehicle table + Add Vehicle modal                              |
+| `src/pages/VehicleRegistry.jsx` | Vehicle table + Add/Retire modal + fleet summary (Member C)    |
 | `src/pages/Analytics.jsx`       | Recharts charts + Financial table + CSV export                 |
-| `src/pages/TripDispatcher.jsx`  | 🔧 Skeleton for Member C                                       |
-| `src/pages/DriverProfiles.jsx`  | 🔧 Skeleton for Member D                                       |
-| `src/pages/MaintenanceLogs.jsx` | 🔧 Skeleton for Member D                                       |
+| `src/pages/TripDispatcher.jsx`  | Trip form + cargo validation + fuel logging modal (Member C)   |
+| `src/pages/DriverProfiles.jsx`  | Driver table + duty toggle + license expiry (Member D)         |
+| `src/pages/MaintenanceLogs.jsx` | Maintenance logs + atomic vehicle flip (Member D)              |
 
 ---
 
