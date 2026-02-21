@@ -16,7 +16,7 @@ fleetflow/
 ├── client/          (React app)
 ├── server/          (Express app)
 └── db/migrations/   (Database schemas)
-
+ 
 ```
 
 ## Quick Start Setup
