@@ -52,6 +52,14 @@ export const applyMockAdapter = (api) => {
           if (url.includes('/auth/login')) {
             responseData = { token: 'mock-jwt-token', user: { id: 2, name: 'Bob Dispatcher', role: 'dispatcher' } };
           }
+          else if (url.includes('/auth/forgot-password')) {
+            // Mock forgot password: just return success to trick the frontend
+            responseData = { message: 'If the email exists, a reset pin was sent.' };
+          }
+          else if (url.includes('/auth/reset-password')) {
+            // Mock reset password: just return success
+            responseData = { message: 'Password has been reset successfully' };
+          }
           // --- FUEL LOGS ---
           else if (url.includes('/fuel-logs')) {
             if (method === 'post') {
