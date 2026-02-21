@@ -167,3 +167,75 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
 
 module.exports = router;
 
+const forgotPasswordSchema = Joi.object({
+    email: Joi.string().email({ tlds: { allow: false } }).required()
+});
+
+router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (req, res) => {
+    try {
+        const { email } = req.body;
+        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            // Silently succeed to prevent email enumeration
+            return res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
+        }
+
+        const user = userResult.rows[0];
+        // Generate 6 digit PIN string
+        const pin = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+
+        resetTokens.set(email, { pin, expiresAt, userId: user.id });
+
+        // Simulate sending email
+        console.log(`\n=== EMAIL SIMULATOR ===\nTo: ${email}\nSubject: Password Reset PIN\nBody: Your 6-digit PIN is: ${pin}\n=======================\n`);
+
+        res.json({ message: 'If an account exists, a reset PIN was sent to that email.' });
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+const resetPasswordSchema = Joi.object({
+    email: Joi.string().email({ tlds: { allow: false } }).required(),
+    token: Joi.string().length(6).required(),
+    newPassword: Joi.string().min(6).required()
+});
+
+router.post('/reset-password', validateRequest(resetPasswordSchema), async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+
+        const resetData = resetTokens.get(email);
+
+        if (!resetData) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        }
+
+        if (Date.now() > resetData.expiresAt) {
+            resetTokens.delete(email);
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        }
+
+        if (resetData.pin !== token) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        }
+
+        // Successfully validated PIN
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, resetData.userId]);
+
+        // Clear the token so it cannot be reused
+        resetTokens.delete(email);
+
+        res.json({ message: 'Password has been reset successfully' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+module.exports = router;
