@@ -1,88 +1,40 @@
-import axios from 'axios';
+import axios from 'axios'
+import { applyMockAdapter } from './mockApi';
 
 const api = axios.create({
   baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+})
 
-// Token storage
-let authToken = localStorage.getItem('fleetflow_token');
-let loginPromise = null;
+// Enable mock backend for testing without DB
+applyMockAdapter(api);
 
-// Auto-attach JWT token to every request
-api.interceptors.request.use(async (config) => {
-  // If no token yet and not a login request, wait for auto-login
-  if (!authToken && !config.url.includes('/auth/login')) {
-    await ensureAuth();
-  }
-  if (authToken) {
-    config.headers.Authorization = `Bearer ${authToken}`;
-  }
-  return config;
-});
-
-// Auto-login function — fetches a JWT token using seed credentials
-async function ensureAuth() {
-  if (authToken) return;
-  if (loginPromise) return loginPromise;
-
-  loginPromise = (async () => {
-    try {
-      // Use the api instance itself (which has baseURL = '/api')
-      const res = await axios.post('/api/auth/login', {
-        email: 'dispatcher@fleetflow.test',
-        password: 'password123',
-      }, {
-        // Manually proxy — in dev, Vite proxies /api to localhost:5000
-        // But since we're inside an interceptor, we use a direct baseURL fallback
-        baseURL: '',
-      });
-      authToken = res.data.token;
-      localStorage.setItem('fleetflow_token', authToken);
-      console.log('✅ Auto-logged in as:', res.data.user.name);
-    } catch (err) {
-      console.error('❌ Auto-login failed:', err.message);
-      // Try with explicit backend URL as fallback
-      try {
-        const res = await axios.post('http://localhost:5000/api/auth/login', {
-          email: 'dispatcher@fleetflow.test',
-          password: 'password123',
-        });
-        authToken = res.data.token;
-        localStorage.setItem('fleetflow_token', authToken);
-        console.log('✅ Auto-logged in (fallback) as:', res.data.user.name);
-      } catch (err2) {
-        console.error('❌ Auto-login fallback also failed:', err2.message);
-      }
-    } finally {
-      loginPromise = null;
+// Request interceptor — attach JWT token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('fleetflow_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
-  })();
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
-  return loginPromise;
-}
-
-// On 401 response, try to re-authenticate
+// Response interceptor — handle 401
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true;
-      authToken = null;
-      localStorage.removeItem('fleetflow_token');
-      await ensureAuth();
-      if (authToken) {
-        error.config.headers.Authorization = `Bearer ${authToken}`;
-        return api(error.config);
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('fleetflow_token')
+      localStorage.removeItem('fleetflow_user')
+      if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
       }
     }
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
-// Kick off auto-login immediately
-ensureAuth();
-
-export default api;
+export default api
