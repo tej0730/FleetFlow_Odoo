@@ -7,7 +7,7 @@ FleetFlow replaces inefficient manual logbooks with a centralized, rule-based di
 - **Role Scopes**: Fleet Manager, Dispatcher, Safety Officer, Financial Analyst
 
 ## Tech Stack
-- **Frontend**: React 18 + Vite, TailwindCSS, shadcn/ui, Recharts, Axios, React Query, React Router v6
+- **Frontend**: React 18 + Vite, TailwindCSS, shadcn/ui, Recharts, Axios, React Query, React Router v7
 - **Backend**: Node.js + Express.js, PostgreSQL (Database), JWT Auth
 
 ## Project Structure
