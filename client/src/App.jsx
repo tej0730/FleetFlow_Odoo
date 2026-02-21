@@ -5,6 +5,7 @@ import Layout from './components/Layout'
 
 // Pages
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import VehicleRegistry from './pages/VehicleRegistry'
 import TripDispatcher from './pages/TripDispatcher'
@@ -17,7 +18,8 @@ export default function App() {
     <AuthProvider>
       <Routes>
         {/* Public */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login"    element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected — wrapped in Layout sidebar */}
         <Route element={<ProtectedRoute />}>
