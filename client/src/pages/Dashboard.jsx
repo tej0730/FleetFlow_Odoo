@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Truck, Wrench, Activity, Package, Heart } from 'lucide-react'
+import { Truck, Wrench, Activity, Package, Heart, Filter } from 'lucide-react'
 import api from '../lib/api'
 import KPICard from '../components/KPICard'
 
 export default function Dashboard() {
+  const [regionFilter, setRegionFilter] = useState('All Regions')
+
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/dashboard/stats').then(r => r.data),
@@ -70,9 +73,35 @@ export default function Dashboard() {
             Live fleet overview · Auto-refreshes every 8 seconds
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-slow inline-block" />
-          Live
+        <div className="flex items-center gap-3">
+          {/* Region Filter UI Stub */}
+          <div className="relative group">
+            <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm hover:border-gray-300 transition-colors">
+              <Filter className="w-3.5 h-3.5 text-gray-400" />
+              <select 
+                value={regionFilter}
+                onChange={(e) => setRegionFilter(e.target.value)}
+                className="text-xs font-medium text-gray-700 bg-transparent border-none focus:ring-0 cursor-pointer p-0 pr-1 appearance-none outline-none"
+              >
+                <option value="All Regions">All Regions</option>
+                <option value="North">North Region</option>
+                <option value="South">South Region</option>
+                <option value="East">East Region</option>
+                <option value="West">West Region</option>
+              </select>
+            </div>
+            {/* Tooltip */}
+            <div className="absolute top-full right-0 mt-2 w-48 p-2.5 bg-gray-900/95 backdrop-blur-sm text-white text-[10px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+              <span className="font-semibold block mb-1 text-indigo-300">Coming Soon</span>
+              Region filtering requires a database migration to add 'region' column. UI stubbed to support objective.txt gap.
+            </div>
+          </div>
+
+          {/* Live Indicator */}
+          <div className="flex items-center gap-2 text-xs text-gray-400 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-slow inline-block" />
+            Live
+          </div>
         </div>
       </div>
 

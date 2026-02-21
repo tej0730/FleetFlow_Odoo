@@ -84,5 +84,31 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
     }
 });
 
+const resetPasswordSchema = Joi.object({
+    email: Joi.string().email({ tlds: { allow: false } }).required(),
+    newPassword: Joi.string().min(6).required()
+});
+
+router.post('/reset-password', validateRequest(resetPasswordSchema), async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        
+        const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userExists.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [passwordHash, email]);
+
+        res.json({ message: 'Password reset successfully' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;
 
