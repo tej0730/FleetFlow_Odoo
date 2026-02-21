@@ -8,7 +8,7 @@ FleetFlow replaces paper logbooks with a live digital command center — real-ti
 
 ## 🏗️ Architecture
 
-```
+```text
 FleetFlow_Odoo/
 ├── client/          → React 18 + Vite (Member B — Frontend Lead)
 │   └── src/
@@ -23,6 +23,46 @@ FleetFlow_Odoo/
 └── db/
     └── migrations/     → 5 PostgreSQL table schemas
 ```
+
+---
+
+## ✨ Key Features & Wow Moments
+
+| Feature | Behavior | Impact |
+| :--- | :--- | :--- |
+| **Real-time OTP Registration** | Two-step email verification using `nodemailer` and Ethereal Email before account activation. | Secure provisioning |
+| **Live Trips Dashboard** | Interactive segmented control filtering active trips (Truck, Van, Bike) directly on the dashboard. | Real-time analytics |
+| **Atomic Status Flips** | Maintenance log creation instantly sets a vehicle to "In Shop" across all dispatch dropdowns. | Deep data integrity |
+| **Inline Cargo Validation** | Yellow warnings as you type; submit is blocked if trip cargo exceeds the vehicle's max capacity. | Prevents errors |
+| **Global License Expiry** | Sticky red banner alerts follow managers across all pages for any driver whose license is expiring. | Proactive safety |
+
+---
+
+## 🏗️ Tech Stack & Dependencies
+
+### Frontend Dependencies (`client/`)
+- **react / react-dom** (^18.3.1) - Core UI library
+- **react-router-dom** (^6.28.0) - Client-side routing
+- **axios** (^1.7.7) - HTTP requests and interceptors
+- **@tanstack/react-query** (^5.59.0) - Data fetching, caching, and polling server state
+- **recharts** (^2.13.0) - Responsive analytics dashboards and charting
+- **react-hook-form** (^7.53.0) - Performant form validation and handling
+- **react-hot-toast** (^2.4.1) - Elegant toast notifications
+- **lucide-react** (^0.451.0) - Crisp SVG UI icons
+- **xlsx** (^0.18.5) - Excel/CSV data exports
+- **clsx** (^2.1.1) / **tailwind-merge** (^2.5.3) - Conditional utility class merging
+- **Vite & TailwindCSS** - Build tooling and styling (devDependencies)
+
+### Backend Dependencies (`server/`)
+- **express** (^5.2.1) - Node.js web framework and API routing
+- **pg** (^8.18.0) - Native PostgreSQL client with connection pooling
+- **bcrypt** (^6.0.0) - Password hashing encryption
+- **jsonwebtoken** (^9.0.3) - Stateless JWT authentication
+- **joi** (^18.0.2) - Strict declarative request payload validation
+- **nodemailer** (^8.0.1) - OTP email delivery (via Ethereal SMTP)
+- **dotenv** (^17.3.1) - Environment variable management
+- **cors** (^2.8.6) / **helmet** (^8.1.0) - App security and cross-origin resource sharing headers
+- **nodemon** (^3.1.14) - Live reloading (devDependencies)
 
 ---
 

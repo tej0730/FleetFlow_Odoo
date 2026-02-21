@@ -9,6 +9,7 @@ const driverSchema = Joi.object({
     name: Joi.string().required(),
     license_number: Joi.string().required(),
     license_expiry: Joi.date().iso().required(),
+    duty_status: Joi.string().valid('On Duty', 'Off Duty', 'Suspended', 'On Leave').optional(),
 });
 
 router.get('/expiring-soon', authenticateToken, async (req, res) => {
@@ -37,7 +38,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.post('/', authenticateToken, validateRequest(driverSchema), async (req, res) => {
     try {
-        const { name, license_number, license_expiry } = req.body;
+        const { name, license_number, license_expiry, duty_status } = req.body;
 
         const checkResult = await pool.query('SELECT * FROM drivers WHERE license_number = $1', [license_number]);
         if (checkResult.rows.length > 0) {
@@ -45,9 +46,9 @@ router.post('/', authenticateToken, validateRequest(driverSchema), async (req, r
         }
 
         const result = await pool.query(
-            `INSERT INTO drivers (name, license_number, license_expiry) 
-             VALUES ($1, $2, $3) RETURNING *`,
-            [name, license_number, license_expiry]
+            `INSERT INTO drivers (name, license_number, license_expiry, duty_status) 
+             VALUES ($1, $2, $3, COALESCE($4, 'Off Duty')) RETURNING *`,
+            [name, license_number, license_expiry, duty_status]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

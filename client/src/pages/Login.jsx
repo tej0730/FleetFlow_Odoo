@@ -8,10 +8,10 @@ import Modal from '../components/Modal'
 import { Zap, Eye, EyeOff, Shield, Truck, BarChart3, MapPin } from 'lucide-react'
 
 const DEMO_ROLES = [
-  { email: 'manager@fleetflow.test',    role: 'Fleet Manager',      icon: Truck,     color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
-  { email: 'dispatcher@fleetflow.test', role: 'Dispatcher',         icon: MapPin,    color: 'bg-blue-50 border-blue-200 text-blue-700' },
-  { email: 'safety@fleetflow.test',     role: 'Safety Officer',     icon: Shield,    color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-  { email: 'analyst@fleetflow.test',    role: 'Financial Analyst',  icon: BarChart3, color: 'bg-amber-50 border-amber-200 text-amber-700' },
+  { email: 'manager@fleetflow.test', role: 'Fleet Manager', icon: Truck, color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+  { email: 'dispatcher@fleetflow.test', role: 'Dispatcher', icon: MapPin, color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { email: 'safety@fleetflow.test', role: 'Safety Officer', icon: Shield, color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+  { email: 'analyst@fleetflow.test', role: 'Financial Analyst', icon: BarChart3, color: 'bg-amber-50 border-amber-200 text-amber-700' },
 ]
 
 export default function Login() {
@@ -31,7 +31,7 @@ export default function Login() {
   const handleSendResetEmail = async (e) => {
     e.preventDefault()
     if (!resetEmail) return toast.error('Please enter your email')
-    
+
     setIsResetting(true)
     try {
       const res = await fetch('/api/auth/forgot-password', {
@@ -41,7 +41,7 @@ export default function Login() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to request reset')
-      
+
       toast.success('Reset PIN sent to your email!')
       setResetStep(2) // Move to step 2
     } catch (err) {
@@ -56,7 +56,7 @@ export default function Login() {
     if (!resetToken || !resetPassword) return toast.error('Please fill all fields')
     if (resetToken.length !== 6) return toast.error('PIN must be 6 digits')
     if (resetPassword.length < 6) return toast.error('Password must be at least 6 characters')
-    
+
     setIsResetting(true)
     try {
       const res = await fetch('/api/auth/reset-password', {
@@ -66,7 +66,7 @@ export default function Login() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to reset password')
-      
+
       toast.success('Password updated! You can now sign in.')
       setIsResetModalOpen(false)
       // Reset state for next time
@@ -150,8 +150,8 @@ export default function Login() {
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
                 <label className="label !mb-0">Password</label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsResetModalOpen(true)}
                   className="text-[11px] text-brand-600 hover:text-brand-700 font-bold hover:underline transition-colors"
                 >
@@ -207,7 +207,7 @@ export default function Login() {
                 </button>
               ))}
             </div>
-            <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">Password for all: <code className="font-mono bg-slate-100/80 px-1.5 py-0.5 rounded text-slate-600">password123</code></p>
+
           </div>
         </div>
 
@@ -216,15 +216,15 @@ export default function Login() {
         </p>
       </div>
 
-      <Modal isOpen={isResetModalOpen} onClose={() => {setIsResetModalOpen(false); setResetStep(1)}} title="Reset Password" size="sm">
+      <Modal isOpen={isResetModalOpen} onClose={() => { setIsResetModalOpen(false); setResetStep(1) }} title="Reset Password" size="sm">
         {resetStep === 1 ? (
           <form onSubmit={handleSendResetEmail} className="space-y-4">
             <p className="text-sm text-gray-500 mb-2">Enter your email and we'll send you a 6-digit reset PIN.</p>
             <div>
               <label className="label">Email Address</label>
-              <input 
-                type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} 
-                required className="input" placeholder="you@company.com" 
+              <input
+                type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
+                required className="input" placeholder="you@company.com"
               />
             </div>
             <button type="submit" disabled={isResetting} className="btn-primary w-full justify-center mt-2">
@@ -236,16 +236,16 @@ export default function Login() {
             <p className="text-sm text-gray-500 mb-2">Check your email (server console) for the 6-digit PIN.</p>
             <div>
               <label className="label">6-Digit PIN</label>
-              <input 
-                type="text" value={resetToken} onChange={e => setResetToken(e.target.value)} 
-                required className="input font-mono tracking-widest text-center" placeholder="------" maxLength={6} 
+              <input
+                type="text" value={resetToken} onChange={e => setResetToken(e.target.value)}
+                required className="input font-mono tracking-widest text-center" placeholder="------" maxLength={6}
               />
             </div>
             <div>
               <label className="label">New Password</label>
-              <input 
-                type="password" value={resetPassword} onChange={e => setResetPassword(e.target.value)} 
-                required className="input" placeholder="Min. 6 characters" minLength={6} 
+              <input
+                type="password" value={resetPassword} onChange={e => setResetPassword(e.target.value)}
+                required className="input" placeholder="Min. 6 characters" minLength={6}
               />
             </div>
             <button type="submit" disabled={isResetting} className="btn-primary w-full justify-center mt-2">

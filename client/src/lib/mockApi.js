@@ -7,28 +7,65 @@
 
 let MOCK_DB = {
   vehicles: [
-    { id: 1, name: 'Toyota Van-01', license_plate: 'VAN-101', type: 'Van', max_capacity_kg: 1000, odometer: 15000, status: 'Available', acquisition_cost: 25000 },
-    { id: 2, name: 'Ford Truck-02', license_plate: 'TRK-202', type: 'Truck', max_capacity_kg: 5000, odometer: 42000, status: 'On Trip', acquisition_cost: 85000 },
-    { id: 3, name: 'Honda Bike-03', license_plate: 'BIK-303', type: 'Bike', max_capacity_kg: 100, odometer: 5000, status: 'Available', acquisition_cost: 5000 },
-    { id: 4, name: 'Mercedes Van-04', license_plate: 'VAN-404', type: 'Van', max_capacity_kg: 1200, odometer: 80000, status: 'In Shop', acquisition_cost: 30000 },
-    { id: 5, name: 'Tata Truck-05', license_plate: 'TRK-505', type: 'Truck', max_capacity_kg: 8000, odometer: 120000, status: 'Retired', acquisition_cost: 65000 },
+    { id: 1, name: 'Freightliner Cascadia', license_plate: 'TRK-9001', type: 'Truck', max_capacity_kg: 15000, odometer: 245000, status: 'Available', acquisition_cost: 145000.00 },
+    { id: 2, name: 'Volvo FH16', license_plate: 'TRK-9002', type: 'Truck', max_capacity_kg: 18000, odometer: 112000, status: 'On Trip', acquisition_cost: 165000.00 },
+    { id: 3, name: 'Peterbilt 579', license_plate: 'TRK-9003', type: 'Truck', max_capacity_kg: 16000, odometer: 310000, status: 'In Shop', acquisition_cost: 130000.00 },
+    { id: 4, name: 'DAF XF 480', license_plate: 'TRK-9004', type: 'Truck', max_capacity_kg: 14000, odometer: 45000, status: 'Available', acquisition_cost: 120000.00 },
+    { id: 5, name: 'Scania R500', license_plate: 'TRK-9005', type: 'Truck', max_capacity_kg: 17000, odometer: 500000, status: 'Retired', acquisition_cost: 150000.00 },
+    { id: 6, name: 'Mercedes Sprinter 2500', license_plate: 'VAN-4001', type: 'Van', max_capacity_kg: 1800, odometer: 45000, status: 'Available', acquisition_cost: 45000.00 },
+    { id: 7, name: 'Ford Transit 350', license_plate: 'VAN-4002', type: 'Van', max_capacity_kg: 2100, odometer: 82000, status: 'On Trip', acquisition_cost: 42000.00 },
+    { id: 8, name: 'Ram ProMaster', license_plate: 'VAN-4003', type: 'Van', max_capacity_kg: 1900, odometer: 15000, status: 'Available', acquisition_cost: 38000.00 },
+    { id: 9, name: 'VW Crafter', license_plate: 'VAN-4004', type: 'Van', max_capacity_kg: 2000, odometer: 105000, status: 'Available', acquisition_cost: 48000.00 },
+    { id: 10, name: 'Nissan NV3500', license_plate: 'VAN-4005', type: 'Van', max_capacity_kg: 1700, odometer: 190000, status: 'In Shop', acquisition_cost: 36000.00 },
+    { id: 11, name: 'Honda CB500X', license_plate: 'BIK-1001', type: 'Bike', max_capacity_kg: 150, odometer: 12000, status: 'Available', acquisition_cost: 6500.00 },
+    { id: 12, name: 'Yamaha Tracer 7', license_plate: 'BIK-1002', type: 'Bike', max_capacity_kg: 180, odometer: 8000, status: 'On Trip', acquisition_cost: 8200.00 },
+    { id: 13, name: 'Kawasaki Versys', license_plate: 'BIK-1003', type: 'Bike', max_capacity_kg: 160, odometer: 25000, status: 'Available', acquisition_cost: 7000.00 },
+    { id: 14, name: 'Suzuki V-Strom', license_plate: 'BIK-1004', type: 'Bike', max_capacity_kg: 170, odometer: 31000, status: 'Available', acquisition_cost: 7500.00 },
+    { id: 15, name: 'BMW F750 GS', license_plate: 'BIK-1005', type: 'Bike', max_capacity_kg: 200, odometer: 5000, status: 'Available', acquisition_cost: 12000.00 },
   ],
   drivers: [
-    { id: 1, name: 'John Doe', license_number: 'DL-10001', duty_status: 'On Duty', license_expiry: '2027-01-01', safety_score: 90, trips_completed: 45, trips_total: 50 },
-    { id: 2, name: 'Jane Smith', license_number: 'DL-10002', duty_status: 'On Duty', license_expiry: '2026-05-05', safety_score: 100, trips_completed: 30, trips_total: 30 },
-    { id: 3, name: 'Mike Johnson', license_number: 'DL-10003', duty_status: 'Off Duty', license_expiry: '2023-01-01', safety_score: 80, trips_completed: 20, trips_total: 25 },
-    { id: 4, name: 'Sarah Lee', license_number: 'DL-10004', duty_status: 'On Duty', license_expiry: '2026-03-15', safety_score: 95, trips_completed: 38, trips_total: 40 },
-    { id: 5, name: 'Bob Wilson', license_number: 'DL-10005', duty_status: 'Suspended', license_expiry: '2025-12-01', safety_score: 55, trips_completed: 10, trips_total: 18 },
+    { id: 1, name: 'Marcus Johnson', license_number: 'DL-NY-8472', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 730 * 86400000).toISOString().split('T')[0], safety_score: 96.67, trips_completed: 145, trips_total: 150 },
+    { id: 2, name: 'Sarah Chen', license_number: 'DL-CA-9931', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0], safety_score: 100.00, trips_completed: 210, trips_total: 210 },
+    { id: 3, name: 'David Miller', license_number: 'DL-TX-1104', duty_status: 'Off Duty', license_expiry: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0], safety_score: 80.00, trips_completed: 20, trips_total: 25 },
+    { id: 4, name: 'Elena Rodriguez', license_number: 'DL-FL-5592', duty_status: 'Suspended', license_expiry: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0], safety_score: 69.23, trips_completed: 45, trips_total: 65 },
+    { id: 5, name: 'James Wilson', license_number: 'DL-WA-3321', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 1825 * 86400000).toISOString().split('T')[0], safety_score: 98.76, trips_completed: 400, trips_total: 405 },
+    { id: 6, name: 'Priya Patel', license_number: 'DL-IL-7744', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 1095 * 86400000).toISOString().split('T')[0], safety_score: 94.44, trips_completed: 85, trips_total: 90 },
+    { id: 7, name: 'Michael Chang', license_number: 'DL-NV-2281', duty_status: 'Suspended', license_expiry: new Date(Date.now() - 60 * 86400000).toISOString().split('T')[0], safety_score: 66.67, trips_completed: 10, trips_total: 15 },
+    { id: 8, name: 'Emma Thompson', license_number: 'DL-OR-6619', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 240 * 86400000).toISOString().split('T')[0], safety_score: 98.43, trips_completed: 315, trips_total: 320 },
+    { id: 9, name: 'Robert Taylor', license_number: 'DL-AZ-4455', duty_status: 'Off Duty', license_expiry: new Date(Date.now() + 1460 * 86400000).toISOString().split('T')[0], safety_score: 93.75, trips_completed: 150, trips_total: 160 },
+    { id: 10, name: 'Lisa Garcia', license_number: 'DL-NM-8822', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0], safety_score: 100.00, trips_completed: 50, trips_total: 50 },
+    { id: 11, name: 'William Davis', license_number: 'DL-CO-1199', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 730 * 86400000).toISOString().split('T')[0], safety_score: 85.71, trips_completed: 12, trips_total: 14 },
+    { id: 12, name: 'Sophie Martin', license_number: 'DL-UT-5533', duty_status: 'On Duty', license_expiry: new Date(Date.now() + 1095 * 86400000).toISOString().split('T')[0], safety_score: 98.21, trips_completed: 275, trips_total: 280 },
   ],
   trips: [
-    { id: 1, vehicle_id: 2, driver_id: 1, cargo_weight_kg: 4500, origin: 'Port', destination: 'Distributor Hub', status: 'Dispatched', created_at: new Date().toISOString(), fuel_liters: null, fuel_cost: null, fuel_efficiency: null },
-    { id: 2, vehicle_id: 1, driver_id: 2, cargo_weight_kg: 800, origin: 'Warehouse A', destination: 'Retail Store', status: 'Completed', created_at: new Date(Date.now() - 86400000).toISOString(), fuel_liters: 35, fuel_cost: 62.50, fuel_efficiency: '12.5' },
+    { id: 1, vehicle_id: 1, driver_id: 1, cargo_weight_kg: 14000, origin: 'Newark Port, NJ', destination: 'Chicago Distribution Center', status: 'Completed', created_at: new Date(Date.now() - 432000000).toISOString() },
+    { id: 2, vehicle_id: 4, driver_id: 5, cargo_weight_kg: 12500, origin: 'Rotterdam Port', destination: 'Berlin Logistics Hub', status: 'Completed', created_at: new Date(Date.now() - 345600000).toISOString() },
+    { id: 3, vehicle_id: 2, driver_id: 2, cargo_weight_kg: 17500, origin: 'Hamburg Terminal', destination: 'Munich Fulfillment', status: 'Dispatched', created_at: new Date(Date.now() - 43200000).toISOString() },
+    { id: 4, vehicle_id: 1, driver_id: 8, cargo_weight_kg: 13800, origin: 'Chicago Distribution Center', destination: 'Dallas Regional Depot', status: 'Draft', created_at: new Date().toISOString() },
+    { id: 5, vehicle_id: 6, driver_id: 6, cargo_weight_kg: 1500, origin: 'Brooklyn Sorting Facility', destination: 'Manhattan Retail 01', status: 'Completed', created_at: new Date(Date.now() - 172800000).toISOString() },
+    { id: 6, vehicle_id: 8, driver_id: 9, cargo_weight_kg: 1700, origin: 'Seattle Hub', destination: 'Portland City Store', status: 'Completed', created_at: new Date(Date.now() - 86400000).toISOString() },
+    { id: 7, vehicle_id: 9, driver_id: 12, cargo_weight_kg: 1900, origin: 'London Gateway', destination: 'Birmingham Central', status: 'Completed', created_at: new Date(Date.now() - 259200000).toISOString() },
+    { id: 8, vehicle_id: 7, driver_id: 10, cargo_weight_kg: 2050, origin: 'Los Angeles Port', destination: 'San Diego Storefront', status: 'Dispatched', created_at: new Date(Date.now() - 10800000).toISOString() },
+    { id: 9, vehicle_id: 6, driver_id: 6, cargo_weight_kg: 1200, origin: 'Manhattan Retail 01', destination: 'Queens Local Depot', status: 'Draft', created_at: new Date().toISOString() },
+    { id: 10, vehicle_id: 8, driver_id: 1, cargo_weight_kg: 1850, origin: 'Portland City Store', destination: 'Seattle Hub Return', status: 'Draft', created_at: new Date().toISOString() },
+    { id: 11, vehicle_id: 11, driver_id: 11, cargo_weight_kg: 45, origin: 'Tokyo Central Post', destination: 'Shibuya Office Complex', status: 'Completed', created_at: new Date(Date.now() - 43200000).toISOString() },
+    { id: 12, vehicle_id: 13, driver_id: 11, cargo_weight_kg: 80, origin: 'Singapore Hub', destination: 'Marina Bay Residence', status: 'Completed', created_at: new Date(Date.now() - 86400000).toISOString() },
+    { id: 13, vehicle_id: 14, driver_id: 12, cargo_weight_kg: 120, origin: 'Toronto Sort Center', destination: 'Downtown Condo Tower', status: 'Completed', created_at: new Date(Date.now() - 18000000).toISOString() },
+    { id: 14, vehicle_id: 12, driver_id: 8, cargo_weight_kg: 65, origin: 'Paris Nord Sorting', destination: 'Louvre Area Deliveries', status: 'Dispatched', created_at: new Date(Date.now() - 3600000).toISOString() },
+    { id: 15, vehicle_id: 15, driver_id: 2, cargo_weight_kg: 85, origin: 'Berlin Central', destination: 'Kreuzberg Dropoff', status: 'Cancelled', created_at: new Date(Date.now() - 864000000).toISOString() }
   ],
   fuelLogs: [
-    { id: 1, trip_id: 2, liters: 35, cost: 62.50, odometer_reading: 15800, date: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+    { id: 1, trip_id: 1, liters: 350.0, cost: 525.00, odometer_reading: 245000, date: new Date(Date.now() - 345600000).toISOString().split('T')[0] },
+    { id: 2, trip_id: 2, liters: 280.0, cost: 420.00, odometer_reading: 45000, date: new Date(Date.now() - 259200000).toISOString().split('T')[0] },
+    { id: 3, trip_id: 5, liters: 85.0, cost: 127.50, odometer_reading: 45000, date: new Date(Date.now() - 172800000).toISOString().split('T')[0] },
+    { id: 4, trip_id: 11, liters: 12.0, cost: 18.00, odometer_reading: 12000, date: new Date(Date.now() - 43200000).toISOString().split('T')[0] }
   ],
   maintenanceLogs: [
-    { id: 1, vehicle_id: 4, service_type: 'Oil Change', cost: 150, date: new Date().toISOString().split('T')[0], notes: 'Routine oil change', status: 'Open' },
+    { id: 1, vehicle_id: 1, service_type: 'Full Synthetic Diesel Oil Change', cost: 450.00, date: new Date(Date.now() - 1296000000).toISOString().split('T')[0], notes: 'Routine 25k mile maintenance', status: 'Closed' },
+    { id: 2, vehicle_id: 3, service_type: 'Transmission Rebuild', cost: 5200.00, date: new Date(Date.now() - 172800000).toISOString().split('T')[0], notes: 'Gears slipping on incline, completely rebuilt in-house', status: 'Open' },
+    { id: 3, vehicle_id: 5, service_type: 'Engine End-of-Life Assessment', cost: 200.00, date: new Date(Date.now() - 2592000000).toISOString().split('T')[0], notes: 'Vehicle retired due to cracked block', status: 'Closed' },
+    { id: 4, vehicle_id: 10, service_type: 'Brake Pads & Rotors', cost: 850.00, date: new Date(Date.now() - 432000000).toISOString().split('T')[0], notes: 'Front and rear pads totally worn down', status: 'Open' },
+    { id: 5, vehicle_id: 6, service_type: 'Tire Rotation & Alignment', cost: 120.00, date: new Date(Date.now() - 1728000000).toISOString().split('T')[0], notes: 'Standard quarterly alignment', status: 'Closed' }
   ],
 };
 
@@ -39,7 +76,7 @@ export const applyMockAdapter = (api) => {
   api.defaults.adapter = async (config) => {
     const url = config.url || '';
     const method = config.method?.toLowerCase();
-    
+
     console.log(`[MOCK API] ${method.toUpperCase()} ${url}`);
 
     return new Promise((resolve, reject) => {
@@ -133,12 +170,12 @@ export const applyMockAdapter = (api) => {
               const id = parseInt(parts[parts.length - 2]);
               const body = JSON.parse(config.data);
               const trip = MOCK_DB.trips.find(t => t.id === id);
-              
+
               if (trip) {
                 trip.status = body.status;
                 const vehicle = MOCK_DB.vehicles.find(v => v.id == trip.vehicle_id);
                 const driver = MOCK_DB.drivers.find(d => d.id == trip.driver_id);
-                
+
                 // Simulate atomic status flip
                 if (body.status === 'Dispatched') {
                   if (vehicle) vehicle.status = 'On Trip';
@@ -186,15 +223,15 @@ export const applyMockAdapter = (api) => {
           }
           // --- DASHBOARD ---
           else if (url.includes('/dashboard/stats')) {
-             const activeVehicles = MOCK_DB.vehicles.filter(v => ['Available', 'On Trip'].includes(v.status));
-             responseData = {
-                activeFleet: activeVehicles.length,
-                maintenanceAlerts: MOCK_DB.vehicles.filter(v => v.status === 'In Shop').length,
-                utilizationRate: MOCK_DB.vehicles.length > 0
-                  ? Math.round((MOCK_DB.vehicles.filter(v => v.status === 'On Trip').length / MOCK_DB.vehicles.filter(v => v.status !== 'Retired').length) * 100)
-                  : 0,
-                pendingCargo: MOCK_DB.trips.filter(t => t.status === 'Draft').reduce((sum, t) => sum + t.cargo_weight_kg, 0)
-             }
+            const activeVehicles = MOCK_DB.vehicles.filter(v => ['Available', 'On Trip'].includes(v.status));
+            responseData = {
+              activeFleet: activeVehicles.length,
+              maintenanceAlerts: MOCK_DB.vehicles.filter(v => v.status === 'In Shop').length,
+              utilizationRate: MOCK_DB.vehicles.length > 0
+                ? Math.round((MOCK_DB.vehicles.filter(v => v.status === 'On Trip').length / MOCK_DB.vehicles.filter(v => v.status !== 'Retired').length) * 100)
+                : 0,
+              pendingCargo: MOCK_DB.trips.filter(t => t.status === 'Draft').reduce((sum, t) => sum + t.cargo_weight_kg, 0)
+            }
           }
           // --- ANALYTICS ---
           else if (url.includes('/analytics/summary')) {
