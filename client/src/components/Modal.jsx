@@ -3,7 +3,6 @@ import { X } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
-  // Close on ESC key
   useEffect(() => {
     if (!isOpen) return
     const handler = (e) => { if (e.key === 'Escape') onClose() }
@@ -11,7 +10,6 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     return () => document.removeEventListener('keydown', handler)
   }, [isOpen, onClose])
 
-  // Prevent body scroll when modal open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -32,22 +30,22 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+
       {/* Panel */}
       <div
         className={cn(
-          'relative w-full bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-fade-in',
+          'relative w-full bg-white border border-gray-200 rounded-2xl shadow-2xl animate-fade-in',
           sizeClass
         )}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <h2 className="text-base font-semibold text-white">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
