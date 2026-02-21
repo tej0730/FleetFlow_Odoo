@@ -1,5 +1,6 @@
 -- 01_schema.sql
 
+DROP TABLE IF EXISTS fuel_logs CASCADE;
 DROP TABLE IF EXISTS maintenance_logs CASCADE;
 DROP TABLE IF EXISTS trips CASCADE;
 DROP TABLE IF EXISTS drivers CASCADE;
@@ -22,7 +23,8 @@ CREATE TABLE vehicles (
     max_capacity_kg INTEGER NOT NULL,
     odometer INTEGER DEFAULT 0,
     status VARCHAR(20) DEFAULT 'Available',
-    acquisition_cost NUMERIC(12,2)
+    acquisition_cost NUMERIC(12,2),
+    region VARCHAR(100) DEFAULT 'North America'
 );
 
 CREATE TABLE drivers (
@@ -56,4 +58,12 @@ CREATE TABLE maintenance_logs (
     date DATE NOT NULL,
     notes TEXT,
     status VARCHAR(20) DEFAULT 'Open'
+);
+
+CREATE TABLE fuel_logs (
+    id SERIAL PRIMARY KEY,
+    vehicle_id INTEGER REFERENCES vehicles(id),
+    liters NUMERIC(8,2) NOT NULL,
+    cost NUMERIC(10,2) NOT NULL,
+    date DATE NOT NULL
 );
