@@ -7,7 +7,7 @@ const Joi = require('joi');
 const validateRequest = require('../middleware/validate');
 
 const loginSchema = Joi.object({
-    email: Joi.string().email({ tlds: { allow: false } }).required(),
+    email: Joi.string().email().required(),
     password: Joi.string().required()
 });
 
