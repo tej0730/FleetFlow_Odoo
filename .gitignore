@@ -1,0 +1,13 @@
+# Node.js / React
+node_modules/
+dist/
+build/
+.env
+
+# Python scripts used during init
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
