@@ -1,202 +1,201 @@
-# FleetFlow — Fleet & Logistics Management System
+# FleetFlow 🚀
 
-> Centralized fleet management system built during a 5-hour hackathon sprint. Replaces manual logbooks with a digital command center for dispatchers, managers, safety officers, and analysts.
+**Modular Fleet & Logistics Management System** | Odoo Hackathon 2025
 
----
-
-## 🚀 Quick Start
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/tej0730/FleetFlow_Odoo.git
-cd FleetFlow_Odoo
-
-# 2. Install backend dependencies
-cd server && npm install
-
-# 3. Install frontend dependencies
-cd ../client && npm install
-
-# 4. Set up environment variables
-#    Copy .env.example to .env in the root and fill in:
-#    DB_HOST=localhost  DB_PORT=5432  DB_NAME=fleetflow_dev  JWT_SECRET=your_secret
-
-# 5. Create database and run migrations (requires PostgreSQL running)
-cd ../server && npm run migrate
-
-# 6. Start backend server (port 5000)
-npm run dev
-
-# 7. Start frontend server (port 5173) — in a new terminal
-cd ../client && npm run dev
-
-# 8. Open http://localhost:5173 in your browser
-```
-
-### 🔑 Login Credentials (Seed Data)
-
-| Role       | Email                        | Password     |
-|------------|------------------------------|--------------|
-| Dispatcher | `dispatcher@fleetflow.com`   | `password123`|
-| Manager    | `manager@fleetflow.com`      | `password123`|
-| Safety     | `safety@fleetflow.com`       | `password123`|
-| Analyst    | `analyst@fleetflow.com`      | `password123`|
-
-> **Note:** If PostgreSQL is not running, the app automatically falls back to mock data so you can still demo the frontend.
+FleetFlow replaces paper logbooks with a live digital command center — real-time fleet tracking, driver safety monitoring, and operational analytics.
 
 ---
 
-## 🏗 Tech Stack
-
-| Layer       | Technology                           |
-|-------------|--------------------------------------|
-| Frontend    | React 18 + Vite                      |
-| Styling     | TailwindCSS 3 + Custom Design System|
-| State       | React Query (auto-refresh every 8s)  |
-| HTTP Client | Axios                                |
-| Routing     | React Router v6                      |
-| Charts      | Recharts                             |
-| Icons       | Lucide React                         |
-| Backend     | Node.js + Express.js                 |
-| Database    | PostgreSQL                           |
-| Auth        | JWT + bcrypt                         |
-| Validation  | Joi (backend) + React Hook Form      |
-| Export      | xlsx library                         |
-
----
-
-## 👥 Team Roles & Responsibilities
-
-### Member A — Backend Lead
-- All Express.js API routes (`auth`, `vehicles`, `drivers`, `trips`, `maintenance`, `analytics`)
-- PostgreSQL database schema (5 tables) + migrations + seed data
-- Joi validation on all POST/PATCH routes
-- Atomic status flips (dispatching a trip → vehicle becomes "On Trip")
-
-### Member B — Frontend Lead
-- React + Vite project setup with TailwindCSS dark theme design system
-- Login page with JWT authentication flow
-- Dashboard with 4 KPI cards (auto-refresh every 8s)
-- Sidebar layout + protected routing
-- Analytics page with Recharts + CSV export
-- Shared components: `StatusPill`, `KPICard`, `DataTable`, `Modal`, `LoadingSpinner`
-
-### Member C — Trip Dispatcher & Vehicle Registry (This Branch)
-- **Trip Dispatcher page** (`/trips`)
-  - Vehicle dropdown (only Available vehicles)
-  - Driver dropdown (only On Duty + valid license drivers)
-  - Cargo weight input with live capacity bar + overweight blocking
-  - Trips table with status pills + action buttons (Dispatch / Complete / Cancel)
-  - Wired to `PATCH /api/trips/:id/status` for atomic status updates
-- **Vehicle Registry page** (`/vehicles`)
-  - Full vehicle data table with status pills
-  - Add Vehicle modal with form validation + license plate uniqueness check
-- **Fleet Health Score** (Dashboard KPI)
-  - Formula: `(availableVehicles / totalVehicles) × 100`
-  - Color-coded: 🟢 ≥75%, 🟡 ≥50%, 🔴 <50%
-- **Mock API adapter** (`mockApi.js`)
-  - Allows full frontend demo without a running PostgreSQL database
-  - Smart auto-detection: tries real backend first, falls back to mock data
-  - Simulates atomic status flips (dispatch → vehicle/driver go "On Trip")
-
-### Member D — Driver Profiles & Maintenance Logs
-- Driver Profiles page with duty status management
-- License expiry tracking with expiry badge + system-wide red banner
-- Maintenance Logs page with open/close workflow
-- Atomic maintenance flip: creating a log → vehicle status becomes "In Shop"
-
----
-
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
 FleetFlow_Odoo/
-├── client/                      ← React Frontend
-│   ├── src/
-│   │   ├── pages/               ← Page components
-│   │   │   ├── Dashboard.jsx          (Member B)
-│   │   │   ├── Login.jsx              (Member B)
-│   │   │   ├── Analytics.jsx          (Member B)
-│   │   │   ├── VehicleRegistry.jsx    (Member C) ★
-│   │   │   ├── TripDispatcher.jsx     (Member C) ★
-│   │   │   ├── DriverProfiles.jsx     (Member D)
-│   │   │   └── MaintenanceLogs.jsx    (Member D)
-│   │   ├── components/          ← Shared UI components
-│   │   │   ├── FleetHealthScore.jsx   (Member C) ★
-│   │   │   ├── StatusPill.jsx         (Member B)
-│   │   │   ├── KPICard.jsx            (Member B)
-│   │   │   ├── Modal.jsx              (Member B)
-│   │   │   ├── Layout.jsx             (Member B)
-│   │   │   └── ProtectedRoute.jsx     (Member B)
-│   │   ├── hooks/               ← React Query custom hooks
-│   │   │   ├── useVehicles.js         (Member C) ★
-│   │   │   ├── useTrips.js            (Member C) ★
-│   │   │   ├── useDrivers.js          (Member C) ★
-│   │   │   └── useDashboardStats.js   (Member B)
-│   │   ├── lib/
-│   │   │   ├── api.js                 (Member B + C)
-│   │   │   ├── mockApi.js             (Member C) ★
-│   │   │   └── utils.js               (Member B)
-│   │   └── context/
-│   │       └── AuthContext.jsx        (Member B)
-├── server/                      ← Express Backend
-│   ├── routes/                  ← API route handlers (Member A)
-│   ├── middleware/              ← auth.js, validate.js (Member A)
-│   └── server.js
-├── db/
-│   └── migrations/              ← Schema + seed SQL (Member A)
-└── .env                         ← Environment variables
+├── client/          → React 18 + Vite (Member B — Frontend Lead)
+│   └── src/
+│       ├── pages/      → 7 page components
+│       ├── components/ → Reusable UI: StatusPill, KPICard, DataTable, Modal
+│       ├── context/    → AuthContext (JWT-based auth)
+│       └── lib/        → Axios instance, utility helpers
+├── server/          → Node.js + Express (Member A — Backend Lead)
+│   ├── routes/         → auth, vehicles, trips, drivers, maintenance
+│   ├── controllers/
+│   └── middleware/     → auth.js (JWT verify), validate.js (Joi)
+└── db/
+    └── migrations/     → 5 PostgreSQL table schemas
 ```
 
 ---
 
-## 🔌 API Reference
+## ⚡ Quick Start
 
-| Method | Route                     | Auth | Purpose                            |
-|--------|---------------------------|------|------------------------------------|
-| POST   | `/api/auth/login`         | ❌   | JWT login                          |
-| GET    | `/api/dashboard/stats`    | ✅   | 4 KPI values                       |
-| GET    | `/api/vehicles`           | ✅   | List vehicles (supports `?status=`)|
-| POST   | `/api/vehicles`           | ✅   | Create vehicle                     |
-| PATCH  | `/api/vehicles/:id`       | ✅   | Update vehicle                     |
-| GET    | `/api/drivers`            | ✅   | List drivers                       |
-| GET    | `/api/trips`              | ✅   | List trips                         |
-| POST   | `/api/trips`              | ✅   | Create trip (cargo validation)     |
-| PATCH  | `/api/trips/:id/status`   | ✅   | Update status (atomic flip)        |
-| POST   | `/api/maintenance`        | ✅   | Create log (vehicle → In Shop)     |
-| PATCH  | `/api/maintenance/:id/close` | ✅| Close log (vehicle → Available)    |
-| GET    | `/api/analytics/summary`  | ✅   | Fleet utilization + costs          |
+### Prerequisites
 
----
+- **Node.js** v18+ ([download](https://nodejs.org))
+- **PostgreSQL** 14+ running locally
+- **Git**
 
-## 🧪 How the Mock API Works
+### 1 — Clone
 
-When PostgreSQL is **not running**, the frontend automatically uses `mockApi.js`:
-
-```
-App starts → api.js tries GET /api/vehicles (2s timeout)
-  ↓ Backend responds? → Use real backend (all API calls go to Express)
-  ↓ Backend offline?  → Load mockApi.js (all data served from memory)
+```bash
+git clone git@github.com:tej0730/FleetFlow_Odoo.git
+cd FleetFlow_Odoo
 ```
 
-**Mock data includes:** 4 vehicles, 3 drivers, 1 dispatched trip, dashboard stats.  
-**To disable mock mode:** Just start PostgreSQL and restart the app.
+### 2 — Database Setup
+
+```bash
+createdb fleetflow_dev
+```
+
+### 3 — Environment Variables
+
+```bash
+cp .env.example .env
+# Edit .env and fill in your credentials:
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=fleetflow_dev
+# JWT_SECRET=your_super_secret_key_here
+```
+
+### 4 — Backend (Member A's server)
+
+```bash
+cd server
+npm install
+npm run migrate    # Run all 5 DB migrations
+npm run seed       # Seed: 5 vehicles, 5 drivers, 8 trips, 3 maintenance logs
+npm run dev        # Runs on http://localhost:5000
+```
+
+### 5 — Frontend (in a new terminal)
+
+```bash
+cd client
+npm install
+npm run dev        # Runs on http://localhost:5173
+```
+
+### 6 — Open in browser
+
+```
+http://localhost:5173
+```
+
+**Demo credentials:** `admin@fleetflow.io` / `password123`
 
 ---
 
-## 🌿 Git Branch Strategy
+## 🌐 API Reference
 
-| Branch                | Owner    | Purpose                          |
-|-----------------------|----------|----------------------------------|
-| `main`                | Team     | Final working version            |
-| `dev`                 | Team     | Integration branch               |
-| `feat/trip-dispatcher`| Member C | Trip Dispatcher + Vehicle Registry|
-| `feat/frontend-ui`    | Member B | Frontend scaffolding + design    |
-| `feat/apis-and-db`    | Member A | Backend APIs + database          |
-| `feat/drivers-maint`  | Member D | Driver Profiles + Maintenance    |
+| Method | Route                        | Auth | Description                                           |
+| ------ | ---------------------------- | ---- | ----------------------------------------------------- |
+| POST   | `/api/auth/login`            | ❌   | Login → returns `{ token, user }`                     |
+| GET    | `/api/dashboard/stats`       | ✅   | 4 KPI values for dashboard                            |
+| GET    | `/api/vehicles`              | ✅   | All vehicles (filter: `?status=Available&type=Truck`) |
+| POST   | `/api/vehicles`              | ✅   | Register new vehicle                                  |
+| PATCH  | `/api/vehicles/:id`          | ✅   | Update vehicle fields                                 |
+| GET    | `/api/trips`                 | ✅   | All trips (`?status=` filter)                         |
+| POST   | `/api/trips`                 | ✅   | Create trip (validates cargo ≤ capacity)              |
+| PATCH  | `/api/trips/:id/status`      | ✅   | Update trip + atomically flip vehicle/driver status   |
+| GET    | `/api/drivers`               | ✅   | All drivers (license_expiry included)                 |
+| POST   | `/api/drivers`               | ✅   | Add driver                                            |
+| PATCH  | `/api/drivers/:id`           | ✅   | Update duty_status, safety_score                      |
+| GET    | `/api/drivers/expiring-soon` | ✅   | Drivers with expiry ≤ 30 days                         |
+| GET    | `/api/maintenance`           | ✅   | All logs (`?vehicle_id=` filter)                      |
+| POST   | `/api/maintenance`           | ✅   | Create log + set vehicle → In Shop (atomic)           |
+| PATCH  | `/api/maintenance/:id/close` | ✅   | Close log + set vehicle → Available (atomic)          |
+| GET    | `/api/analytics/summary`     | ✅   | Utilization %, status breakdown, avg fuel efficiency  |
+| GET    | `/api/reports/monthly`       | ✅   | Monthly revenue, fuel, maintenance costs              |
+| POST   | `/api/fuel-logs`             | ✅   | Record fuel liters, cost, odometer per trip (Member C)|
+
+All protected routes require: `Authorization: Bearer <JWT_TOKEN>`
 
 ---
 
-## 📋 License
+## 🌿 Git Workflow
 
-This project was built for a hackathon. MIT License.
+```
+main            ← Final release only (tagged v1.0 at Hour 5)
+dev             ← Integration branch (everyone PRs here)
+feat/frontend-core     ← Member B (this repo)
+feat/apis-and-db       ← Member A
+feat/vehicles-trips    ← Member C
+feat/drivers-maint     ← Member D
+```
+
+**Commit format:** `feat: add dashboard KPI auto-refresh`  
+**Merge schedule:** End of Hour 1 → `dev`, End of Hour 3 → `dev`, Hour 5 → `main`
+
+> **Rule:** Every team member must have ≥ 6 individual commits. A single committer = disqualification.
+
+---
+
+## 🎨 Status Color Reference
+
+| Status              | Color    | Meaning                        |
+| ------------------- | -------- | ------------------------------ |
+| Available           | 🟢 Green | Vehicle/Driver ready to assign |
+| On Trip / On Duty   | 🔵 Blue  | Currently dispatched           |
+| In Shop / Suspended | 🔴 Red   | Blocked from assignment        |
+| Retired / Off Duty  | ⚫ Gray  | Decommissioned / resting       |
+| Draft               | 🟡 Amber | Trip not yet dispatched        |
+| Completed           | 🟢 Green | Trip finished                  |
+| Cancelled           | ⚫ Gray  | Trip cancelled                 |
+
+---
+
+## ✨ Key Features & Wow Moments
+
+| Feature                     | Behavior                                                               | Demo Impact                 |
+| --------------------------- | ---------------------------------------------------------------------- | --------------------------- |
+| **Auto-refresh Dashboard**  | React Query polls every 8 seconds                                      | Live system feel            |
+| **Atomic Status Flip**      | Maintenance log → vehicle instantly becomes "In Shop" across all pages | Real connected state        |
+| **Inline Cargo Validation** | Yellow warning as you type; submit blocked if over limit               | Prevents operational errors |
+| **License Expiry Banner**   | Red sticky banner follows across ALL pages for any expiring driver     | Proactive safety thinking   |
+| **Fleet Health Score**      | `(available/total)*100` shown as % on dashboard                        | One number, instant insight |
+| **Fuel Logging on Complete**| Modal prompts for liters, cost, odometer when completing trip          | Tracks real fuel efficiency |
+| **Vehicle Retire/Restore**  | One-click retire or restore button on Vehicle Registry                 | Full asset lifecycle mgmt   |
+
+---
+
+## 📂 Frontend File Reference (Member B Owns)
+
+| File                            | Purpose                                                        |
+| ------------------------------- | -------------------------------------------------------------- |
+| `src/App.jsx`                   | React Router v6 with protected routes                          |
+| `src/main.jsx`                  | Entry point with React Query + Toast providers                 |
+| `src/lib/api.js`                | Axios instance with JWT auto-attach + 401 redirect             |
+| `src/lib/utils.js`              | formatCurrency, formatDate, exportToCSV, license expiry checks |
+| `src/context/AuthContext.jsx`   | Login, logout, isAuthenticated                                 |
+| `src/components/Layout.jsx`     | Sidebar + global license expiry red banner                     |
+| `src/components/StatusPill.jsx` | Color-coded status badge for all entities                      |
+| `src/components/KPICard.jsx`    | Dashboard metric card with loading skeleton                    |
+| `src/components/DataTable.jsx`  | Reusable table with loading rows + empty state                 |
+| `src/components/Modal.jsx`      | Generic modal with ESC/backdrop close                          |
+| `src/pages/Login.jsx`           | Auth page with validation + demo credentials                   |
+| `src/pages/Dashboard.jsx`       | 4 KPI cards with 8s auto-refresh                               |
+| `src/pages/VehicleRegistry.jsx` | Vehicle table + Add/Retire modal + fleet summary (Member C)    |
+| `src/pages/Analytics.jsx`       | Recharts charts + Financial table + CSV export                 |
+| `src/pages/TripDispatcher.jsx`  | Trip form + cargo validation + fuel logging modal (Member C)   |
+| `src/pages/DriverProfiles.jsx`  | Driver table + duty toggle + license expiry (Member D)         |
+| `src/pages/MaintenanceLogs.jsx` | Maintenance logs + atomic vehicle flip (Member D)              |
+
+---
+
+## 🚀 Demo Flow (5 Minutes)
+
+| Time | Page                                               | Presenter    |
+| ---- | -------------------------------------------------- | ------------ |
+| 0:00 | Login page                                         | Member B     |
+| 0:30 | Dashboard KPIs auto-refresh                        | Member B     |
+| 1:00 | Vehicle Registry → Add Maintenance                 | Member C     |
+| 1:30 | Trip Dispatcher — vehicle disappears from dropdown | Member D / C |
+| 2:30 | Overweight cargo validation blocks submission      | Member C     |
+| 3:00 | Driver Profiles — expired license red badge        | Member D     |
+| 3:45 | Analytics — charts + CSV export                    | Member B     |
+| 4:30 | Wrap up                                            | Any          |
+
+---
+
+_Built in 5 hours by a 4-member team. FleetFlow v1.0._
