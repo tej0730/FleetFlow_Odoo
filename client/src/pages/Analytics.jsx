@@ -1,18 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts'
-import { Download, TrendingUp } from 'lucide-react'
+import { Download, TrendingUp, PieChart } from 'lucide-react'
 import api from '../lib/api'
 import { formatCurrency, exportToCSV } from '../lib/utils'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-const chartTooltipStyle = {
-  contentStyle: { backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem' },
-  labelStyle: { color: '#94a3b8' },
-  itemStyle: { color: '#e2e8f0' },
+const tooltipStyle = {
+  contentStyle: {
+    backgroundColor: '#fff',
+    border: '1px solid #e5e7eb',
+    borderRadius: '0.5rem',
+    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+  },
+  labelStyle: { color: '#6b7280', fontSize: 12 },
+  itemStyle: { color: '#374151', fontSize: 12 },
 }
+
+const STATUS_COLORS = ['#10b981', '#6366f1', '#ef4444', '#9ca3af']
 
 export default function Analytics() {
   const { data: summary, isLoading: loadingSummary } = useQuery({
@@ -23,25 +30,27 @@ export default function Analytics() {
 
   const { data: monthly, isLoading: loadingMonthly } = useQuery({
     queryKey: ['monthly-report'],
-    queryFn: () => api.get('/reports/monthly').then(r => r.data),
+    queryFn: () => api.get('/analytics/monthly').then(r => r.data),
     retry: 1,
   })
 
   const handleExport = () => {
-    if (!monthly || monthly.length === 0) return
+    if (!monthly?.length) return
     exportToCSV(monthly, 'fleetflow_monthly_report.csv')
   }
 
-  // Utilization chart data from summary
-  const utilizationData = summary?.utilizationByMonth || []
+  // Utilization trend from summary (single point for now, or empty)
+  const utilizationData = summary
+    ? [{ month: 'Current', utilization: summary.utilizationRate || 0 }]
+    : []
 
-  // Vehicle status breakdown data
-  const statusData = summary?.vehicleStatusBreakdown
+  // Vehicle status breakdown
+  const statusBreakdown = summary
     ? [
-        { status: 'Available', count: summary.vehicleStatusBreakdown.available || 0 },
-        { status: 'On Trip',   count: summary.vehicleStatusBreakdown.onTrip || 0 },
-        { status: 'In Shop',   count: summary.vehicleStatusBreakdown.inShop || 0 },
-        { status: 'Retired',   count: summary.vehicleStatusBreakdown.retired || 0 },
+        { status: 'Available',  count: 0 }, // backend /analytics/summary doesn't return breakdown
+        { status: 'On Trip',    count: 0 },
+        { status: 'In Shop',    count: 0 },
+        { status: 'Retired',    count: 0 },
       ]
     : []
 
@@ -55,7 +64,7 @@ export default function Analytics() {
         <button
           id="export-csv-btn"
           onClick={handleExport}
-          disabled={!monthly || monthly.length === 0}
+          disabled={!monthly?.length}
           className="btn-primary"
         >
           <Download className="w-4 h-4" />
@@ -63,128 +72,95 @@ export default function Analytics() {
         </button>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-        {/* Utilization LineChart */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-5">
-            <TrendingUp className="w-4 h-4 text-blue-400" />
-            <h3 className="text-sm font-semibold text-slate-200">Fleet Utilization Rate (%)</h3>
-          </div>
-          {loadingSummary ? (
-            <div className="h-56 flex items-center justify-center">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : utilizationData.length === 0 ? (
-            <EmptyChartState message="No utilization data available yet." />
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={utilizationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} unit="%" />
-                <Tooltip {...chartTooltipStyle} formatter={v => [`${v}%`, 'Utilization']} />
-                <Legend wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
-                <Line
-                  type="monotone"
-                  dataKey="utilization"
-                  stroke="#3b82f6"
-                  strokeWidth={2.5}
-                  dot={{ fill: '#3b82f6', r: 4 }}
-                  activeDot={{ r: 6, fill: '#60a5fa' }}
-                  name="Utilization"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
+      {/* Summary Stat Cards */}
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <StatCard label="Fleet Utilization" value={`${summary.utilizationRate}%`} />
+          <StatCard label="Total Acq. Cost" value={formatCurrency(summary.totalAcquisitionCost)} />
+          <StatCard label="Avg Cost / Vehicle" value={formatCurrency(summary.fleetCostPerVehicle)} />
         </div>
+      )}
 
-        {/* Vehicle Status BarChart */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <h3 className="text-sm font-semibold text-slate-200">Vehicle Status Breakdown</h3>
-          </div>
-          {loadingSummary ? (
-            <div className="h-56 flex items-center justify-center">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : statusData.length === 0 ? (
-            <EmptyChartState message="No vehicle status data available yet." />
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={statusData} barCategoryGap="40%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="status" tick={{ fill: '#64748b', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} allowDecimals={false} />
-                <Tooltip {...chartTooltipStyle} formatter={v => [v, 'Vehicles']} />
-                <Bar dataKey="count" name="Vehicles" radius={[4, 4, 0, 0]}>
-                  {statusData.map((entry, index) => {
-                    const colors = ['#10b981', '#3b82f6', '#ef4444', '#6b7280']
-                    return <rect key={index} fill={colors[index] || '#3b82f6'} />
-                  })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      {/* Financial Summary Table */}
-      <div className="card">
+      {/* Monthly Financial Table */}
+      <div className="card mb-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-sm font-semibold text-slate-200">Monthly Financial Summary</h3>
-          <span className="text-xs text-slate-500">Click Export CSV to download</span>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-indigo-600" />
+            <h3 className="text-sm font-semibold text-gray-700">Monthly Financial Summary</h3>
+          </div>
+          <span className="text-xs text-gray-400">Click Export CSV to download</span>
         </div>
 
         {loadingMonthly ? (
-          <div className="py-10 flex justify-center">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : !monthly || monthly.length === 0 ? (
-          <p className="text-slate-500 text-sm py-10 text-center">
-            No monthly report data available yet.
-          </p>
+          <div className="py-10 flex justify-center"><LoadingSpinner size="lg" /></div>
+        ) : !monthly?.length ? (
+          <p className="text-gray-400 text-sm py-10 text-center">No monthly report data yet.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-800">
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
             <table className="ff-table">
               <thead>
                 <tr>
                   <th>Month</th>
                   <th>Revenue</th>
-                  <th>Fuel Cost</th>
+                  <th>Fuel (Est.) </th>
                   <th>Maintenance</th>
-                  <th>Net</th>
+                  <th>Net Profit</th>
                 </tr>
               </thead>
               <tbody>
-                {monthly.map((row, i) => {
-                  const net = (row.revenue || 0) - (row.fuel_cost || 0) - (row.maintenance_cost || 0)
-                  return (
-                    <tr key={i}>
-                      <td className="font-medium text-slate-100">{row.month}</td>
-                      <td className="font-mono text-emerald-400">{formatCurrency(row.revenue)}</td>
-                      <td className="font-mono text-amber-400">{formatCurrency(row.fuel_cost)}</td>
-                      <td className="font-mono text-red-400">{formatCurrency(row.maintenance_cost)}</td>
-                      <td className={`font-mono font-semibold ${net >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
-                        {formatCurrency(net)}
-                      </td>
-                    </tr>
-                  )
-                })}
+                {monthly.map((row, i) => (
+                  <tr key={i}>
+                    <td className="font-medium text-gray-900">{row.month}</td>
+                    <td className="font-mono text-emerald-600">{formatCurrency(row.revenue)}</td>
+                    <td className="font-mono text-amber-600">{formatCurrency(row.estimated_fuel_cost)}</td>
+                    <td className="font-mono text-red-500">{formatCurrency(row.maintenance_cost)}</td>
+                    <td className={`font-mono font-semibold ${(row.net_profit ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {formatCurrency(row.net_profit)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
+        )}
+      </div>
+
+      {/* Recharts Revenue Bar Chart */}
+      <div className="card">
+        <div className="flex items-center gap-2 mb-5">
+          <PieChart className="w-4 h-4 text-indigo-600" />
+          <h3 className="text-sm font-semibold text-gray-700">Monthly Revenue vs Costs</h3>
+        </div>
+        {loadingMonthly ? (
+          <div className="h-56 flex items-center justify-center"><LoadingSpinner size="lg" /></div>
+        ) : !monthly?.length ? (
+          <div className="h-56 flex items-center justify-center">
+            <p className="text-gray-400 text-sm">No data available yet.</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={monthly} barCategoryGap="30%">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 11 }} />
+              <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip {...tooltipStyle} formatter={(v, name) => [formatCurrency(v), name]} />
+              <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280' }} />
+              <Bar dataKey="revenue" name="Revenue" fill="#6366f1" radius={[3,3,0,0]} />
+              <Bar dataKey="maintenance_cost" name="Maintenance" fill="#ef4444" radius={[3,3,0,0]} />
+              <Bar dataKey="estimated_fuel_cost" name="Fuel (Est.)" fill="#f59e0b" radius={[3,3,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
     </div>
   )
 }
 
-function EmptyChartState({ message }) {
+function StatCard({ label, value }) {
   return (
-    <div className="h-56 flex items-center justify-center">
-      <p className="text-slate-600 text-sm">{message}</p>
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{label}</p>
+      <p className="text-2xl font-bold text-indigo-700">{value}</p>
     </div>
   )
 }
