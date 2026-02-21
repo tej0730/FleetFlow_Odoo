@@ -1,0 +1,96 @@
+## 🚀 FleetFlow — 4-Member Task Division (5-Hour Sprint)
+
+The plan already assigns roles clearly. Here's the full breakdown:
+
+---
+
+### 👤 Member A — Backend & Database Lead
+**You own:** `server/` folder + `db/migrations/`
+
+**Hour 1 (first 20 min):** Set up Express project, run all 5 DB migrations (users, vehicles, drivers, trips, maintenance_logs), seed realistic data.
+
+**Hour 1 (remaining):** Build all core API routes — Auth (register/login/JWT), Vehicle CRUD, Driver CRUD, Trips CRUD, Maintenance CRUD.
+
+**Hour 2:** Build Trip status PATCH endpoint (with atomic vehicle+driver status flip), Maintenance close endpoint, Dashboard KPI aggregation endpoint.
+
+**Hour 3:** Build `GET /api/drivers/expiring-soon`, `GET /api/reports/monthly`, add Joi validation to all POST routes, fix any API bugs found by teammates.
+
+**Hour 4:** Fix all backend bugs found during integration testing.
+
+**Hour 5:** Polish error messages (400/401/404/500), write README.md, verify seed data looks realistic. At 4:50 → merge all branches into `dev`, then `dev → main`, tag `v1.0`.
+
+**Git role:** Resolves all merge conflicts at end of Hour 1 and Hour 3.
+
+---
+
+### 👤 Member B — Frontend Core & UI Lead
+**You own:** `client/src/` folder
+
+**Hour 1:** Scaffold React + Vite project, set up TailwindCSS + shadcn/ui, configure Axios instance (base URL, auth interceptor), set up React Router with protected routes, build AuthContext + Login page.
+
+**Hour 2:** Build Dashboard page (4 KPI cards with React Query `refetchInterval: 8000`), build Vehicle Registry page (table + Add Vehicle modal form).
+
+**Hour 3:** Complete Analytics page (Recharts LineChart for utilization, BarChart for vehicle status), build Financial Summary table from monthly report API, add CSV export button using xlsx library.
+
+**Hour 4:** Fix all UI bugs found during integration testing.
+
+**Hour 5:** Add toast notifications on every form action, add loading spinners on all fetches, add empty state messages on all tables, add **global license expiry red banner** across all pages.
+
+**Demo role:** Presents Login page and Dashboard (0:00–1:00) and Analytics page (3:45–4:30).
+
+---
+
+### 👤 Member C — Trip Dispatcher & Core Logic
+**You own:** Trip Dispatcher page + Fleet Health Score
+
+**Hour 1:** Help with project setup, build initial Trip Dispatcher page skeleton.
+
+**Hour 2:** Build full Trip Dispatcher form — vehicle dropdown (Available only), driver dropdown (On Duty + valid license only), cargo weight input with live validation against `max_capacity_kg`.
+
+**Hour 3:** Add trips table with status pills and action buttons (Dispatch / Complete / Cancel), wire all status buttons to `PATCH /api/trips/:id/status`, manually test full trip lifecycle (create → dispatch → complete → verify all status flips).
+
+**Hour 4:** Fix all trip-flow bugs found during integration testing.
+
+**Hour 5:** Add Fleet Health Score card to dashboard `(available/totalVehicles * 100)`, disable submit + show inline error when cargo exceeds limit, ensure consistent status pill colors across all pages.
+
+**Demo role:** Presents Vehicle Registry to Maintenance (1:00–1:30) and the overweight cargo validation (2:30–3:00).
+
+---
+
+### 👤 Member D — Maintenance, Drivers & Safety
+**You own:** Maintenance Logs page + Driver Profiles page
+
+**Hour 1:** Help with setup, build Driver Profiles page skeleton.
+
+**Hour 2:** Complete Driver Profiles page (table showing name, license number, expiry date, duty status, safety score), build Add Driver form, show red badge on drivers with expired/expiring licenses.
+
+**Hour 3:** Complete Maintenance Logs page (table with vehicle name, cost, date, open/closed status), add "Close Maintenance" button that calls `PATCH /api/maintenance/:id/close`, add driver safety score percentage badge (green >80%, amber >60%, red <60%), add trip completion rate on each driver row.
+
+**Hour 4:** Fix all maintenance and driver-flow bugs found during integration testing.
+
+**Hour 5:** Final consistency pass on Driver and Maintenance pages (spacing, typography, buttons), verify expired license driver shows red badge and cannot be selected in Trip Dispatcher, ensure all form fields have proper placeholder text and labels.
+
+**Demo role:** Presents Driver Profiles / expired license scenario (3:00–3:45).
+
+---
+
+## ⏱ Critical Sync Points
+
+| Time | Action |
+|------|--------|
+| End of Hour 1 | Everyone pushes feature branch → **Member A merges into `dev`** |
+| End of Hour 3 | Everyone pushes again → **Member A merges into `dev`** |
+| Hour 4 | **STOP BUILDING. Full team integration test** (13-step checklist) |
+| Hour 5, 4:50 | **STOP CODING.** `dev → main`, tag `v1.0`, rehearse demo twice |
+
+---
+
+## 🌿 Branch Naming Convention
+```
+feat/backend-api        → Member A
+feat/frontend-ui        → Member B  
+feat/trip-dispatcher    → Member C
+feat/maintenance-driver → Member D
+```
+
+The plan is already extremely well-structured — your job now is to clone the repo, create your branches, and **Member A starts the DB migrations immediately** while everyone else sets up their local environments. Good luck! 🚀
