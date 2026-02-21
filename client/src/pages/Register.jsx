@@ -93,33 +93,37 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg animate-fade-in">
+    <div className="min-h-screen relative flex items-center justify-center p-6 bg-[#f8fafc] overflow-hidden">
+      {/* Background Decorative Blobs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] rounded-full bg-brand-400/20 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
+
+      <div className="w-full max-w-lg animate-fade-in relative z-10">
         {/* Logo */}
-        <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 shadow-lg mb-4">
-            <Zap className="w-7 h-7 text-white" />
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-xl mb-5 hover:scale-105 transition-transform duration-300">
+            <Zap className="w-8 h-8 text-white drop-shadow-md" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">FleetFlow</h1>
-          <p className="text-gray-500 text-sm mt-1.5">Create your account</p>
+          <h1 className="text-4xl font-display font-extrabold text-slate-900 tracking-tight">FleetFlow</h1>
+          <p className="text-slate-500 font-medium text-sm mt-2">Create your account</p>
         </div>
 
         {/* Card */}
-        <div className="card shadow-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-indigo-600" />
+        <div className="glass-panel rounded-2xl p-8 backdrop-blur-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-brand-600" />
               Create Account
             </h2>
             <Link
               to="/login"
-              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+              className="text-xs text-brand-600 hover:text-brand-700 font-bold hover:underline"
             >
-              Already have an account? Sign in →
+              Already have an account? Sign in &rarr;
             </Link>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
             {/* Full Name */}
             <div>
               <label className="label">Full Name</label>
@@ -127,7 +131,7 @@ export default function Register() {
                 id="reg-name"
                 type="text"
                 placeholder="Alice Manager"
-                className={`input ${errors.name ? 'border-red-400 focus:ring-red-400' : ''}`}
+                className={`input-glass ${errors.name ? 'border-red-400 ring-1 ring-red-400/50' : ''}`}
                 {...register('name', {
                   required: 'Full name is required',
                   minLength: { value: 2, message: 'Name must be at least 2 characters' }
@@ -143,7 +147,7 @@ export default function Register() {
                 id="reg-email"
                 type="email"
                 placeholder="you@company.com"
-                className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                className={`input-glass ${errors.email ? 'border-red-400 ring-1 ring-red-400/50' : ''}`}
                 {...register('email', {
                   required: 'Email is required',
                   pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' }
@@ -156,14 +160,14 @@ export default function Register() {
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
                 <label className="label !mb-0">Password</label>
-                <span className="text-[10px] text-gray-500 font-medium tracking-wide">Must be at least 6 characters</span>
+                <span className="text-[10px] text-slate-400 font-bold tracking-wide uppercase">Min 6 chars</span>
               </div>
               <div className="relative">
                 <input
                   id="reg-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Min. 6 characters"
-                  className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  placeholder="••••••••"
+                  className={`input-glass pr-10 ${errors.password ? 'border-red-400 ring-1 ring-red-400/50' : ''}`}
                   {...register('password', {
                     required: 'Password is required',
                     minLength: { value: 6, message: 'Password must be at least 6 characters' }
@@ -172,7 +176,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -182,9 +186,9 @@ export default function Register() {
             </div>
 
             {/* Role Selection */}
-            <div>
-              <label className="label mb-2.5">Select Your Role</label>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="pt-2">
+              <label className="label mb-3">Select Your Role</label>
+              <div className="grid grid-cols-2 gap-2.5">
                 {ROLES.map(({ value, label, description, icon: Icon, color, activeColor }) => {
                   const isActive = selectedRole === value
                   return (
@@ -193,12 +197,12 @@ export default function Register() {
                       type="button"
                       id={`role-${value}`}
                       onClick={() => setSelectedRole(value)}
-                      className={`flex items-start gap-2.5 p-3 rounded-xl border-2 text-left transition-all duration-150 hover:scale-[1.02] ${isActive ? activeColor : color}`}
+                      className={`flex items-start gap-2.5 p-3 rounded-xl border bg-white/50 backdrop-blur-sm text-left transition-all duration-200 hover:scale-[1.03] hover:shadow-md ${isActive ? activeColor : color}`}
                     >
                       <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-semibold leading-none mb-1">{label}</p>
-                        <p className={`text-[10px] leading-tight ${isActive ? 'text-white/80' : 'opacity-60'}`}>
+                        <p className="text-xs font-bold leading-none mb-1.5">{label}</p>
+                        <p className={`text-[10px] leading-tight font-medium ${isActive ? 'text-white/90' : 'text-slate-500'}`}>
                           {description}
                         </p>
                       </div>
@@ -207,7 +211,7 @@ export default function Register() {
                 })}
               </div>
               {!selectedRole && (
-                <p className="text-gray-400 text-[10px] mt-1.5 text-center">Click a role to select it</p>
+                <p className="text-slate-400 text-[10px] mt-2 text-center font-bold uppercase tracking-widest">Click a role to select it</p>
               )}
             </div>
 
@@ -215,7 +219,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full justify-center py-2.5 text-sm font-semibold mt-2"
+              className="btn-primary w-full justify-center py-3 text-sm font-bold shadow-lg shadow-brand-500/30 mt-4"
             >
               {isLoading
                 ? <><LoadingSpinner size="sm" /> Creating account...</>
@@ -225,8 +229,8 @@ export default function Register() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-5">
-          FleetFlow v1.0 · Built for Odoo Hackathon 2025
+        <p className="text-center text-xs font-medium text-slate-400 mt-8">
+          FleetFlow v1.0 &middot; Built for Odoo Hackathon 2025
         </p>
       </div>
     </div>

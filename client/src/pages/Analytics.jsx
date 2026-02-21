@@ -56,10 +56,10 @@ export default function Analytics() {
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header relative z-10">
         <div>
           <h1 className="page-title">Analytics</h1>
-          <p className="page-subtitle">Fleet performance & financial overview</p>
+          <p className="page-subtitle">Fleet performance &amp; financial overview</p>
         </div>
         <button
           id="export-csv-btn"
@@ -163,12 +163,15 @@ export default function Analytics() {
 
 function StatCard({ label, value, note }) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 relative group">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{label}</p>
-      <p className="text-2xl font-bold text-indigo-700">{value}</p>
+    <div className="group relative overflow-hidden bg-white/80 backdrop-blur-md border border-white/50 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-300">
+      <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-brand-400 blur-[30px] opacity-10 group-hover:opacity-20 transition-opacity" />
+      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 opacity-80 relative z-10">{label}</p>
+      <p className="text-3xl font-extrabold text-brand-700 tracking-tight relative z-10">{value}</p>
       {note && (
-        <div className="absolute top-full right-0 mt-2 w-48 p-2.5 bg-gray-900/95 backdrop-blur-sm text-white text-[10px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
-          <span className="font-semibold block mb-1 text-amber-300">Data Missing</span>
+        <div className="absolute top-full right-0 mt-2 w-56 p-3 bg-slate-900/95 backdrop-blur-md text-white text-[11px] font-medium leading-relaxed rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 pointer-events-none border border-slate-700">
+          <span className="font-bold block mb-1.5 text-amber-400 flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Data Missing
+          </span>
           {note}
         </div>
       )}
