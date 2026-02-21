@@ -43,7 +43,7 @@ export default function KPICard({ title, value, icon: Icon, color, subtitle, isL
 
   return (
     <div className={cn(
-      'group relative overflow-hidden bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-300 bg-gradient-to-br',
+      'group relative overflow-hidden bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-500 hover:-translate-y-1 hover:z-20 bg-gradient-to-br',
       c.bg, c.border, 'border'
     )}>
       {/* Decorative background glow */}
