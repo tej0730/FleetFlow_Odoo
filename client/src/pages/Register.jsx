@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import {
   Zap, Eye, EyeOff,
   Truck, MapPin, ShieldCheck, BarChart3,
-  UserPlus
+  UserPlus, MailCheck, ArrowRight
 } from 'lucide-react'
 
 const ROLES = [
@@ -48,12 +48,21 @@ const ROLES = [
 export default function Register() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  
+  // Base State
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [selectedRole, setSelectedRole] = useState('')
+  
+  // OTP Verification State
+  const [showOtp, setShowOtp] = useState(false)
+  const [registeredUser, setRegisteredUser] = useState(null)
+  const [otpCode, setOtpCode] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm()
 
+  // 1. Initial Registration
   const onSubmit = async ({ name, email, password }) => {
     if (!selectedRole) {
       toast.error('Please select a role to continue.')
@@ -75,20 +84,53 @@ export default function Register() {
         throw new Error(data.error || 'Registration failed')
       }
 
-      // Auto-login after registration by storing token + user from response
-      const { token, user } = data
-      localStorage.setItem('fleetflow_token', token)
-      localStorage.setItem('fleetflow_user', JSON.stringify(user))
-
-      // Re-trigger React state by calling login context directly
-      await login(email, password)
-
-      toast.success(`Welcome to FleetFlow, ${user.name}!`)
-      navigate('/')
+      // Instead of auto-login, we save user data and prompt for OTP
+      setRegisteredUser({ email, password, name: data.user?.name || name })
+      setShowOtp(true)
+      toast.success('Verification code sent to your email!')
     } catch (err) {
       toast.error(err.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // 2. OTP Verification
+  const verifyOtp = async (e) => {
+    e.preventDefault()
+    if (otpCode.length !== 6) {
+        toast.error('Please enter the 6-digit code')
+        return
+    }
+
+    setIsVerifying(true)
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredUser.email, otp: otpCode }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Invalid or expired code')
+      }
+
+      // Verification successful! Store token and auto-login
+      const { token, user } = data
+      localStorage.setItem('fleetflow_token', token)
+      localStorage.setItem('fleetflow_user', JSON.stringify(user))
+
+      // Trigger Context
+      await login(registeredUser.email, registeredUser.password)
+
+      toast.success(`Welcome to FleetFlow, ${user.name}!`)
+      navigate('/')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setIsVerifying(false)
     }
   }
 
@@ -207,8 +249,27 @@ export default function Register() {
                         </p>
                       </div>
                     </button>
-                  )
-                })}
+                </form>
+                
+                <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+                    This step proves our real-time API integrations!
+                </p>
+              </div>
+          ) : (
+              
+          /* ----- STATE 1: REGISTRATION FORM ----- */
+          <div className="p-1">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-indigo-600" />
+                  Create Account
+                </h2>
+                <Link
+                  to="/login"
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+                >
+                  Already have an account? Sign in →
+                </Link>
               </div>
               {!selectedRole && (
                 <p className="text-slate-400 text-[10px] mt-2 text-center font-bold uppercase tracking-widest">Click a role to select it</p>
