@@ -1,0 +1,698 @@
+FleetFlow
+Modular Fleet & Logistics Management System
+Full Project Implementation Document
+Team Size:  4 Members
+Duration:   5 Hours
+Type:       Hackathon / Sprint Build
+1. Project Overview
+FleetFlow replaces inefficient manual logbooks with a centralized, rule-based digital hub that optimizes the lifecycle of a delivery fleet, monitors driver safety, and tracks financial performance. The system is built for four distinct user roles and covers eight core operational modules.
+1.1 Objective
+Build a working, demo-ready fleet management system in 5 hours with 4 team members, using real APIs, a live database, and a clean responsive UI that impresses judges through reliable core features rather than half-finished extras.
+1.2 Target Users
+User Role
+Responsibilities
+Fleet Manager
+Oversee vehicle health, asset lifecycle, and overall scheduling
+Dispatcher
+Create trips, assign drivers, validate cargo loads before dispatch
+Safety Officer
+Monitor driver compliance, license expirations, and safety scores
+Financial Analyst
+Audit fuel spend, maintenance ROI, and total operational costs
+1.3 Scope Decision — What We Build vs What We Cut
+Given the 5-hour constraint, scope must be ruthlessly prioritized. Every feature below is categorized as either essential (must ship) or cut (dropped entirely to protect quality of core features).
+Feature
+Decision
+Reason
+Login + JWT Auth
+BUILD
+Gate for all other features
+Dashboard KPIs (auto-refresh)
+BUILD
+Most visible feature in demo
+Vehicle Registry (full CRUD)
+BUILD
+Core data foundation
+Trip Dispatcher + cargo validation
+BUILD
+Key business logic differentiator
+Maintenance Logs + auto status flip
+BUILD
+Impressive real-time logic
+Driver Profiles + license check
+BUILD
+Safety compliance feature
+Analytics (2 charts + CSV export)
+BUILD
+Shows financial awareness
+2. Tech Stack
+Layer
+Technology
+Why This Choice
+Frontend
+React 18 + Vite
+Fast HMR, familiar to most devs
+Styling
+TailwindCSS + shadcn/ui
+Pre-built components, consistent design
+Charts
+Recharts
+Simple API, React-native, no D3 complexity
+HTTP Client
+Axios + React Query
+Auto retry, caching, refetch interval for polling
+Routing
+React Router v6
+Industry standard, easy protected routes
+Backend
+Node.js + Express.js
+Fastest to scaffold APIs, same language as frontend
+Database
+PostgreSQL
+Relational structure needed for linked data
+Auth
+JWT + bcrypt
+Stateless, no session storage needed
+Validation
+Joi (backend) + React Hook Form
+Robust both sides, prevents bad data entering DB
+Export
+xlsx library
+CSV export in 20 lines of code
+Version Control
+Git + GitHub
+PR-based workflow, everyone commits
+2.1 Project Folder Structure
+fleetflow/
+├── client/                    (React app — Member B owns)
+│   ├── src/
+│   │   ├── pages/             (8 page components)
+│   │   ├── components/        (reusable UI: StatusPill, KPICard, DataTable)
+│   │   ├── hooks/             (useVehicles, useTrips, useDrivers)
+│   │   ├── context/           (AuthContext)
+│   │   └── lib/              (axios instance, utils)
+├── server/                    (Express app — Member A owns)
+│   ├── routes/               (auth, vehicles, trips, drivers, maintenance)
+│   ├── controllers/
+│   ├── middleware/            (auth.js, validate.js)
+│   └── models/               (Knex query builders)
+└── db/
+    └── migrations/            (all 5 table schemas)
+3. Database Schema
+PostgreSQL with 5 tables. All linked by foreign keys. Member A creates and runs migrations in the first 20 minutes of Hour 1.
+3.1 Table: users
+Column
+Type
+Constraint
+Notes
+id
+SERIAL
+PRIMARY KEY
+Auto-increment
+name
+VARCHAR(100)
+NOT NULL
+Full display name
+email
+VARCHAR(150)
+UNIQUE NOT NULL
+Used for login
+password_hash
+TEXT
+NOT NULL
+bcrypt hashed
+role
+VARCHAR(30)
+NOT NULL
+manager / dispatcher / analyst
+3.2 Table: vehicles
+Column
+Type
+Constraint
+Notes
+id
+SERIAL
+PRIMARY KEY
+name / model
+VARCHAR(100)
+NOT NULL
+e.g. Van-05 / Toyota
+license_plate
+VARCHAR(20)
+UNIQUE NOT NULL
+Unique identifier
+type
+VARCHAR(20)
+NOT NULL
+Truck / Van / Bike
+max_capacity_kg
+INTEGER
+NOT NULL
+Used in cargo validation
+odometer
+INTEGER
+DEFAULT 0
+Updated on trip complete
+status
+VARCHAR(20)
+DEFAULT 'Available'
+Available/On Trip/In Shop/Retired
+acquisition_cost
+NUMERIC(12,2)
+Used for ROI calculation
+3.3 Table: drivers
+Column
+Type
+Constraint
+Notes
+id
+SERIAL
+PRIMARY KEY
+name
+VARCHAR(100)
+NOT NULL
+license_number
+VARCHAR(50)
+UNIQUE NOT NULL
+license_expiry
+DATE
+NOT NULL
+Checked on every assignment
+duty_status
+VARCHAR(20)
+DEFAULT 'Off Duty'
+On Duty / Off Duty / Suspended
+trips_completed
+INTEGER
+DEFAULT 0
+Numerator for safety score
+trips_total
+INTEGER
+DEFAULT 0
+Denominator for safety score
+safety_score
+NUMERIC(5,2)
+DEFAULT 100
+Computed: completed/total * 100
+3.4 Table: trips
+Column
+Type
+Constraint
+Notes
+id
+SERIAL
+PRIMARY KEY
+vehicle_id
+INTEGER
+FK → vehicles
+driver_id
+INTEGER
+FK → drivers
+cargo_weight_kg
+INTEGER
+NOT NULL
+Validated: must be <= max_capacity
+origin
+TEXT
+NOT NULL
+destination
+TEXT
+NOT NULL
+status
+VARCHAR(20)
+DEFAULT 'Draft'
+Draft/Dispatched/Completed/Cancelled
+created_at
+TIMESTAMP
+DEFAULT NOW()
+final_odometer
+INTEGER
+Entered when trip is completed
+3.5 Table: maintenance_logs
+Column
+Type
+Constraint
+Notes
+id
+SERIAL
+PRIMARY KEY
+vehicle_id
+INTEGER
+FK → vehicles
+service_type
+VARCHAR(100)
+NOT NULL
+Oil Change / Tyre / Brake etc.
+cost
+NUMERIC(10,2)
+Feeds into ROI / total cost
+date
+DATE
+NOT NULL
+notes
+TEXT
+Optional description
+status
+VARCHAR(20)
+DEFAULT 'Open'
+Open = vehicle In Shop; Closed = Available
+Seeding: Member A runs the seed script at the end of Hour 1 migrations. Seed data: 5 vehicles, 5 drivers (1 with expired license), 8 trips across all statuses, 3 maintenance logs. This gives everyone real data from Hour 2 onwards.
+4. Team Assignments & Responsibilities
+Member
+Role
+Owns (Primary)
+Priority Rule
+Member A
+Backend Lead
+ALL Express APIs, DB migrations, seed data
+Pure backend — no frontend work
+Member B
+Frontend Lead
+React setup, Layout, Login, Dashboard, Analytics
+Pure frontend — ask A for API contracts
+Member C
+Full-stack
+Vehicle Registry (API + UI) THEN Trip Dispatcher (API + UI)
+Finish Vehicle Registry 100% before touching Trip
+Member D
+Full-stack
+Driver Profiles (API + UI) THEN Maintenance Logs (API + UI)
+Finish Driver Profiles 100% before touching Maintenance
+4.1 Git Branch Structure
+main         ← final working version only (merge here at the very end)
+dev          ← integration branch (everyone merges into this)
+feat/apis-and-db       ← Member A
+feat/frontend-core     ← Member B
+feat/vehicles-trips    ← Member C
+feat/drivers-maint     ← Member D
+4.2 Git Commit Rules
+Commit message format: feat: add cargo weight validation on POST /trips
+Never commit directly to main or dev — always work on your feature branch
+Merge into dev at: end of Hour 1, end of Hour 3, end of Hour 5
+Pull from dev before starting each new hour to stay in sync
+Member A handles all merge conflicts — they own the shared files
+Rule: Every team member must have at least 6 individual commits by the end of the 5 hours. One member managing the repo is an instant disqualifier under the judging criteria.
+5. API Reference (All Routes)
+Member A builds all of these. Members B, C, and D treat this as a contract. Agree on the response shape by the end of Hour 1 so frontend devs can build against it.
+5.1 Authentication
+Method
+Route
+Auth Required
+Returns
+POST
+/api/auth/login
+No
+{ token, user: {id, name, role} }
+5.2 Dashboard
+Method
+Route
+Auth Required
+Returns
+GET
+/api/dashboard/stats
+Yes
+{ activeFleet, maintenanceAlerts, utilizationRate, pendingCargo }
+5.3 Vehicles
+Method
+Route
+Auth Required
+Notes
+GET
+/api/vehicles
+Yes
+Supports ?status= and ?type= filters
+GET
+/api/vehicles/:id
+Yes
+Single vehicle with cost totals
+POST
+/api/vehicles
+Yes
+Validates license_plate uniqueness
+PATCH
+/api/vehicles/:id
+Yes
+Update status, odometer, any field
+5.4 Trips
+Method
+Route
+Auth Required
+Notes
+GET
+/api/trips
+Yes
+Supports ?status= filter
+POST
+/api/trips
+Yes
+VALIDATES: cargo_weight <= vehicle.max_capacity. Returns 400 if over limit
+PATCH
+/api/trips/:id/status
+Yes
+Body: { status }. Updates vehicle + driver status atomically
+5.5 Drivers
+Method
+Route
+Auth Required
+Notes
+GET
+/api/drivers
+Yes
+Includes license_expiry in response
+POST
+/api/drivers
+Yes
+Validates all required fields
+PATCH
+/api/drivers/:id
+Yes
+Update duty_status, safety_score, etc.
+GET
+/api/drivers/expiring-soon
+Yes
+Returns drivers with license_expiry within 30 days
+5.6 Maintenance
+Method
+Route
+Auth Required
+Notes
+GET
+/api/maintenance
+Yes
+All logs, supports ?vehicle_id= filter
+POST
+/api/maintenance
+Yes
+ATOMICALLY sets vehicle.status = In Shop in same DB transaction
+PATCH
+/api/maintenance/:id/close
+Yes
+Sets log status = Closed. Sets vehicle.status = Available
+5.7 Analytics
+Method
+Route
+Auth Required
+Notes
+GET
+/api/analytics/summary
+Yes
+Fleet utilization %, cost per vehicle, ROI
+GET
+/api/reports/monthly
+Yes
+Revenue, fuel cost, maintenance by month
+6. Hour-by-Hour Execution Plan
+CRITICAL: All team members must install Node.js, PostgreSQL, and Git BEFORE the 5 hours start. Member A creates the GitHub repo and shares access. Everyone clones and runs npm install the night before. If you skip this, you lose 45 minutes of build time.
+Before Clock Starts — Pre-requisites
+Member A: Create GitHub repo, add dev and main branches, share access to all members
+Member A: Write .env.example file with DB_HOST, DB_PORT, DB_NAME, JWT_SECRET placeholders
+Everyone: Clone repo, npm install on both client and server, confirm psql connection works
+Everyone: Create a local PostgreSQL database named fleetflow_dev
+Agree on API base URL (http://localhost:5000/api) and frontend port (5173)
+⏱ Hour 1 (0:00 – 1:00) — Foundation
+Goal: Everyone has a running server, a connected database with real seed data, and a React app with working routing by the end of this hour.
+Member A — Backend
+Init Express app with cors, helmet, express.json() middleware
+Connect to PostgreSQL using pg or knex — confirm connection
+Write and run all 5 table migrations (users, vehicles, drivers, trips, maintenance_logs)
+Write and run seed script immediately — 5 vehicles, 5 drivers (1 with expired license), 8 trips, 3 maintenance logs
+Build POST /api/auth/login — bcrypt compare, return JWT
+Build GET /api/dashboard/stats — 4 KPI counts from DB
+Member B — Frontend
+Init React + Vite, install TailwindCSS, shadcn/ui, React Router v6, Axios, React Query
+Set up React Router with all 8 routes pointing to placeholder page components
+Build sidebar navigation layout — this wraps every page component
+Create Axios instance (lib/api.js) with base URL and JWT Authorization header auto-attached
+Build Login page UI — email/password form, POST to auth API, store token in localStorage, redirect
+Member C — Vehicle Registry
+Build GET /api/vehicles and POST /api/vehicles API routes
+Build PATCH /api/vehicles/:id for status and odometer updates
+Build Vehicle Registry page — data table connected to real GET /api/vehicles
+Add status pill component (color-coded: green=Available, blue=On Trip, red=In Shop, gray=Retired)
+Member D — Driver Profiles
+Build GET /api/drivers and POST /api/drivers API routes
+Build PATCH /api/drivers/:id for duty status and safety score updates
+Build Driver Profiles page — data table connected to real GET /api/drivers
+Add license expiry red badge logic: if today > license_expiry show EXPIRED in red
+End of Hour 1 Action: Everyone commits to their feature branch. Member A merges all branches into dev. Everyone pulls dev. This is the messiest merge — get it done early.
+⏱ Hour 2 (1:00 – 2:00) — Core Features
+Goal: All primary business logic is coded. Cargo validation works. Maintenance status flip works. Dashboard is live.
+Member A
+Build POST /api/trips — validate cargo_weight <= vehicle.max_capacity, return HTTP 400 with message if violated
+Build PATCH /api/trips/:id/status — atomically update trip status + vehicle status + driver status in one transaction
+Build POST /api/maintenance — in one DB transaction: insert log AND set vehicle.status = 'In Shop'
+Build PATCH /api/maintenance/:id/close — set log.status = Closed AND vehicle.status = Available
+Build GET /api/analytics/summary stub returning real data from DB
+Member B
+Build Dashboard page — 4 KPI cards (Active Fleet, Maintenance Alerts, Utilization Rate, Pending Cargo)
+Implement auto-refresh: React Query refetchInterval: 8000 so data refreshes every 8 seconds
+Add filter bar by vehicle type (Truck / Van / Bike) that filters the trip table on dashboard
+Start Analytics page structure — placeholder charts ready for data in Hour 3
+Member C
+Add 'New Vehicle' modal with form validation — all fields required, license plate uniqueness check
+Start Trip Dispatcher page — dropdown for vehicle selection showing only Available vehicles
+Add driver dropdown showing only On Duty drivers with non-expired licenses
+Add cargo weight input field with live yellow warning if approaching 90% of vehicle capacity
+Member D
+Add 'New Driver' registration modal with full field validation
+Add duty status toggle button on each driver row (On Duty / Off Duty / Suspended)
+Start Maintenance Logs page — log submission form connected to POST /api/maintenance
+Verify that submitting a maintenance log immediately updates the vehicle status in the database
+⏱ Hour 3 (2:00 – 3:00) — Complete All Modules
+Goal: Every page is functional and connected to real data. All 7 modules are complete.
+Member A
+Build GET /api/drivers/expiring-soon — WHERE license_expiry <= NOW() + INTERVAL '30 days'
+Build GET /api/reports/monthly — aggregate revenue, fuel cost, maintenance cost grouped by month
+Add Joi input validation to all POST routes — return 400 with clear field-level error messages
+Fix any API response inconsistencies discovered during Hour 2 frontend integration
+Member B
+Complete Analytics page — Recharts LineChart for fleet utilization over time
+Add Recharts BarChart for vehicle status breakdown (Available / On Trip / In Shop counts)
+Build Financial Summary table using data from GET /api/reports/monthly
+Add CSV export button using xlsx library — exports monthly financial summary on click
+Member C
+Complete Trip Dispatcher — cargo weight validation blocks form submission if over limit
+Add trips table showing all trips with status pills and action buttons (Dispatch / Complete / Cancel)
+Wire status buttons to PATCH /api/trips/:id/status — verify vehicle and driver status updates
+Test: create a trip, dispatch it, complete it, verify statuses flip correctly throughout
+Member D
+Complete Maintenance Logs page — table of all logs with vehicle name, cost, date, open/closed status
+Add close maintenance button — calls PATCH /api/maintenance/:id/close, vehicle returns to Available
+Add driver safety score display — percentage badge with color coding (green >80%, amber >60%, red <60%)
+Add trip completion rate display on each driver row
+End of Hour 3 Action: Commit everything. Member A merges all into dev. Everyone pulls. This is the second major sync point.
+⏱ Hour 4 (3:00 – 4:00) — Integration Testing (DO NOT SKIP)
+Stop building. Test the full end-to-end workflow as a team. This hour is the most important. Teams that skip testing and demo broken connected workflows always lose.
+Run this exact sequence out loud together:
+#
+Action
+Expected Result
+1
+Open login page, enter credentials
+Redirects to Dashboard
+2
+Dashboard loads — check all 4 KPI cards show real numbers
+No zeroes, no undefined
+3
+Go to Vehicle Registry, click Add Vehicle, fill form
+New vehicle appears in table
+4
+Go to Driver Profiles, add new driver with future expiry
+Driver appears, no red badge
+5
+Go to Trip Dispatcher, try to create trip with overweight cargo
+System rejects with clear error message
+6
+Create trip with valid cargo weight
+Trip created, vehicle + driver show On Trip
+7
+Check Dashboard — Active Fleet KPI should have increased by 1
+Auto-refreshes within 8 seconds
+8
+Complete the trip from Trip Dispatcher
+Vehicle + driver flip back to Available
+9
+Go to Maintenance Logs, log a service for a vehicle
+Vehicle status flips to In Shop
+10
+Go back to Trip Dispatcher — check that In Shop vehicle is gone from dropdown
+Vehicle not visible in available list
+11
+Close the maintenance log
+Vehicle returns to Available, appears in dropdown again
+12
+Check Analytics page — charts render with data
+No blank charts, no API errors
+13
+Click CSV Export on Analytics page
+File downloads with correct data
+Every broken step above = one bug to fix in this hour. Split the bugs: Member A fixes API issues, B fixes UI issues, C fixes trip flow, D fixes maintenance flow.
+⏱ Hour 5 (4:00 – 5:00) — Polish + Demo Prep
+First 20 minutes: Polish. Last 10 minutes: Freeze code. Final 30 minutes: Demo rehearsal.
+Member A — Polish
+Confirm all API routes return proper error messages with HTTP status codes (400, 401, 404, 500)
+Write README.md with setup instructions: git clone, npm install, createdb, migration command, npm run dev
+Verify seed data looks realistic (not 'Test Vehicle 1', use proper names like 'Toyota Van-05')
+Member B — Polish
+Add toast notifications on every form action — 'Vehicle added successfully', 'Trip dispatched', 'Error: license expired'
+Add loading spinners on all data fetches (React Query isLoading state)
+Add empty state messages on all tables ('No vehicles registered yet. Click + to add one.')
+Add global license expiry banner — red bar at the top of every page if GET /api/drivers/expiring-soon returns results
+Member C — Polish
+Add Fleet Health Score card to dashboard — formula: (availableVehicles / totalVehicles * 100) displayed as percentage
+Disable trip submission button and show inline error when cargo weight exceeds limit
+Ensure all status pills across every page use consistent colors
+Member D — Polish
+Final consistency pass on Driver and Maintenance pages — spacing, typography, button styles
+Verify the expired license driver (from seed data) shows a red badge and cannot be selected in Trip Dispatcher
+Make sure all form fields have proper placeholder text and labels
+At 4:50 — STOP CODING. Merge everything into dev, then dev into main, tag release v1.0.
+7. Demo Strategy
+Your demo has 5 minutes. Judges see 10+ projects in a row. You need a clear opening line, a logical flow, and at least one moment that makes them say 'oh, that's clever.' Plan this as carefully as you plan the code.
+7.1 Recommended Demo Flow
+Time
+Page / Action
+What You Say
+Who Presents
+0:00
+Login page
+FleetFlow replaces paper logbooks with a live digital command center.
+Member B
+0:30
+Dashboard
+This is the at-a-glance view. These 4 KPIs update automatically every 8 seconds — no refresh needed.
+Member B
+1:00
+Vehicle Registry
+We track every asset here. Watch what happens when I add a maintenance log...
+Member C
+1:30
+Maintenance → Trip Dispatcher
+That vehicle is now In Shop and has disappeared from the dispatcher's available list. One action, automatic consequence.
+Member D / C
+2:30
+Trip Dispatcher — overweight test
+If a dispatcher tries to assign 600kg to a 500kg vehicle, the system blocks it before it's even submitted.
+Member C
+3:00
+Driver Profiles — expired license
+This driver's license expired. The system shows a system-wide alert and blocks them from being assigned to any trip.
+Member D
+3:45
+Analytics
+All of this data rolls up into the analytics page. One click to export the monthly financial summary as a CSV.
+Member B
+4:30
+Wrap up
+FleetFlow is built on PostgreSQL, Express, and React. Every status change in the system triggers real database updates.
+Any member
+7.2 Your Three 'Wow Moments'
+These are the moments in your demo where a judge looks up from their laptop. Plan to pause briefly after each one.
+Wow Moment 1 — The Atomic Status Flip
+Open two browser tabs side by side. Tab 1: Maintenance Logs. Tab 2: Trip Dispatcher. Submit a maintenance log on Tab 1. Within 8 seconds, switch to Tab 2 — the vehicle is gone from the dropdown. No page refresh. No manual action. This demonstrates your system actually has real connected state.
+Wow Moment 2 — Cargo Validation Inline
+On the Trip Dispatcher, type a cargo weight that exceeds the selected vehicle's capacity. Before the judge even reads what you typed, a yellow warning appears and the submit button grays out. Say: 'The system prevents overloading at the point of entry, not after the truck has already left.' Simple validation, huge operational implication.
+Wow Moment 3 — System-Wide License Banner
+Navigate to any page — Dashboard, Vehicle Registry, anywhere. A red banner is visible at the top because one of the drivers in the system has an expired license. Say: 'A fleet manager can't miss this. It follows them across every page until the license is renewed.' This shows you thought about real operational safety, not just data entry.
+7.3 Rehearsal Checklist
+Run through the demo flow twice as a team before presenting
+Confirm the database has seed data loaded — never demo on empty tables
+Confirm the app runs cleanly from a fresh npm run dev with no console errors
+Each member knows exactly which page they present and what they click
+Agree on the opening line — say it in unison if needed so it sounds rehearsed
+Have a fallback: if any page breaks during demo, know which page to jump to next
+8. What Makes FleetFlow Stand Out
+Feature
+What It Does
+Why Judges Notice It
+Auto-refresh Dashboard
+React Query refetchInterval: 8000 — KPIs update every 8 seconds
+Feels like a live system, not a static mockup
+Atomic Maintenance Flip
+One DB transaction: log created + vehicle status changed simultaneously
+Demonstrates understanding of data integrity, not just CRUD
+Inline Cargo Validation
+Warning appears as user types. Submit disabled if over limit.
+Prevents operational errors at the source
+License Expiry Banner
+Red global banner on every page for expiring drivers
+Shows proactive safety thinking, not reactive
+Fleet Health Score
+Single KPI: (available/total)*100 shown as percentage
+Managers want one number, not 5 tables to interpret
+Seeded Realistic Demo Data
+5 vehicles, 5 drivers, 8 trips, 3 maintenance logs pre-loaded
+System looks production-ready from second one of demo
+Individual Git Commits
+Every member has 6+ commits across the 5 hours
+Directly meets judging criteria on version control
+The teams that win hackathons almost always win on polish and workflow, not on the number of features. A clean demo of 7 working features beats a stuttering demo of 12 half-broken ones every time.
+9. Quick Reference Card
+Port Numbers
+Frontend (React + Vite): http://localhost:5173
+Backend (Express): http://localhost:5000
+PostgreSQL: localhost:5432 / database: fleetflow_dev
+Vehicle Status Values
+Status
+Color
+Meaning
+Available
+Green
+Ready to be assigned to a trip
+On Trip
+Blue
+Currently assigned and dispatched
+In Shop
+Red
+Under maintenance — hidden from dispatcher
+Retired
+Gray
+Decommissioned — never appears in any dropdowns
+Driver Status Values
+Status
+Color
+Meaning
+On Duty
+Green
+Available to be assigned to trips
+Off Duty
+Gray
+Resting — does not appear in dispatcher dropdown
+Suspended
+Red
+Blocked — cannot be assigned regardless of license status
+Trip Lifecycle
+Status
+Vehicle Status
+Driver Status
+Action Available
+Draft
+Available
+On Duty
+Dispatch or Cancel
+Dispatched
+On Trip
+On Trip
+Complete or Cancel
+Completed
+Available
+On Duty
+View only
+Cancelled
+Available
+On Duty
+View only
+Merge Schedule
+When
+Action
+Who Does It
+End of Hour 1
+All feat branches → dev
+Member A resolves conflicts
+End of Hour 3
+All feat branches → dev
+Member A resolves conflicts
+Hour 5 — 4:50
+dev → main, tag v1.0
+Member A
+Final reminder: At the 4:50 mark, stop all coding. Tag the release. Rehearse the demo twice. A broken demo of a half-finished feature is always worse than not showing that feature at all.
