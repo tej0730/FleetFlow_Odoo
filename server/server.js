@@ -17,7 +17,7 @@ app.use('/api/drivers', require('./routes/drivers'));
 app.use('/api/trips', require('./routes/trips'));
 app.use('/api/maintenance', require('./routes/maintenance'));
 app.use('/api/analytics', require('./routes/analytics')); // also houses /api/reports/monthly
-
+app.use('/api/fuel', require('./routes/fuel'));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
