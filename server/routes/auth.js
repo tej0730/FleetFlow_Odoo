@@ -151,7 +151,7 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
         // Clear the token so it cannot be reused
         resetTokens.delete(email);
 
-        res.json({ message: 'Password has been reset successfully' });
+        res.json({ message: 'Password reset successfully' });
     } catch (err) {
         console.error('Reset password error:', err);
         res.status(500).json({ error: 'Internal server error' });
