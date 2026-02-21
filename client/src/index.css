@@ -18,12 +18,15 @@
     width: 5px;
     height: 5px;
   }
+
   ::-webkit-scrollbar-track {
     @apply bg-gray-100;
   }
+
   ::-webkit-scrollbar-thumb {
     @apply bg-gray-300 rounded-full;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
@@ -50,25 +53,10 @@
 
   .btn-ghost {
     @apply inline-flex items-center gap-2 px-3 py-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 text-sm font-medium rounded-lg transition-all duration-150;
-  /* ---- Buttons ---- */
-  .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-danger {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-success {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 text-sm font-medium rounded-lg transition-all duration-150;
+  /* ───────────────── Form Inputs ───────────────── */
+  .input {
     @apply w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150;
   }
 
@@ -90,6 +78,7 @@
     @apply bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all duration-200;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.05);
   }
+
   .card-hover:hover {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
@@ -197,6 +186,7 @@
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
+
 .animate-slide-up {
   animation: slideUp 0.25s ease-out;
 }
