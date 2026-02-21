@@ -179,8 +179,6 @@ Demo: `admin@fleetflow.io / password123`
 | MaintenanceLogs.jsx | Maintenance     |
 
 ```
-
 ---
-
-You can now paste this directly into `README.md` — it will render properly on GitHub.
-```
+# Just Do it...
+---
