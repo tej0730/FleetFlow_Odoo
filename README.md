@@ -1,8 +1,3 @@
-Below is the same cleaned README in pure **Markdown (.md) format** — no formatting tricks, just copy-paste into `README.md`.
-
----
-
-```md
 # FleetFlow 🚀
 **Modular Fleet & Logistics Management System**
 
