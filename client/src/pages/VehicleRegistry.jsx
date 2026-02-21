@@ -1,12 +1,6 @@
 /* ─────────────────────────────────────────────────────────
    VehicleRegistry.jsx
    OWNER: Member C — Vehicle Registry (data table + add form)
-
-   Features:
-     - Data table of all vehicles with status pills
-     - Add Vehicle modal with validation
-     - License plate uniqueness check
-     - Status pill color coding consistent with plan.txt
 ──────────────────────────────────────────────────────────── */
 import { useState } from 'react'
 import { Truck, Plus } from 'lucide-react'
@@ -24,14 +18,12 @@ export default function VehicleRegistry() {
   })
   const [formError, setFormError] = useState('')
 
-  // Fetch Vehicles
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ['vehicles', 'all'],
     queryFn: () => api.get('/vehicles').then(r => r.data),
     refetchInterval: 8000
   })
 
-  // Create Vehicle
   const createVehicle = useMutation({
     mutationFn: (data) => api.post('/vehicles', data).then(r => r.data),
     onSuccess: () => {
@@ -69,7 +61,6 @@ export default function VehicleRegistry() {
 
   return (
     <div>
-      {/* Page Header */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Vehicle Registry</h1>
@@ -83,7 +74,7 @@ export default function VehicleRegistry() {
       {/* Add Vehicle Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register New Vehicle">
         {formError && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
             ⚠️ {formError}
           </div>
         )}
@@ -139,26 +130,26 @@ export default function VehicleRegistry() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan="5" className="text-center py-8 text-slate-500">Loading vehicles...</td></tr>
+              <tr><td colSpan="5" className="text-center py-8 text-gray-400">Loading vehicles...</td></tr>
             ) : vehicles.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-8 text-slate-500">No vehicles registered yet. Click + to add one.</td></tr>
+              <tr><td colSpan="5" className="text-center py-8 text-gray-400">No vehicles registered yet.</td></tr>
             ) : (
               vehicles.map(v => (
                 <tr key={v.id}>
                   <td>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                        <Truck className="w-4 h-4 text-blue-400" />
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-indigo-500" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-slate-200">{v.name}</div>
-                        <div className="text-xs text-slate-500 font-mono">{v.license_plate}</div>
+                        <div className="text-sm font-medium text-gray-900">{v.name}</div>
+                        <div className="text-xs text-gray-500 font-mono">{v.license_plate}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="text-slate-300">{v.type}</td>
-                  <td className="text-slate-300">{v.max_capacity_kg?.toLocaleString()} kg</td>
-                  <td className="text-slate-300 font-mono">{v.odometer?.toLocaleString()} km</td>
+                  <td className="text-gray-700">{v.type}</td>
+                  <td className="text-gray-700">{v.max_capacity_kg?.toLocaleString()} kg</td>
+                  <td className="text-gray-700 font-mono">{v.odometer?.toLocaleString()} km</td>
                   <td><StatusPill status={v.status} /></td>
                 </tr>
               ))
