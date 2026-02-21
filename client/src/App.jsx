@@ -1,33 +1,39 @@
-import React from 'react'
-import TripDispatcher from './pages/TripDispatcher'
-import FleetHealthScore from './components/FleetHealthScore'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './components/Layout'
 
-function App() {
+// Pages
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import VehicleRegistry from './pages/VehicleRegistry'
+import TripDispatcher from './pages/TripDispatcher'
+import DriverProfiles from './pages/DriverProfiles'
+import MaintenanceLogs from './pages/MaintenanceLogs'
+import Analytics from './pages/Analytics'
+
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Temporary Navigation Header for testing integration */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-blue-600">FleetFlow Setup</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-      
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
-             <FleetHealthScore />
-          </div>
-        </div>
-        
-        <TripDispatcher />
-      </main>
-    </div>
+    <AuthProvider>
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected — wrapped in Layout sidebar */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/"            element={<Dashboard />} />
+            <Route path="/vehicles"    element={<VehicleRegistry />} />
+            <Route path="/trips"       element={<TripDispatcher />} />
+            <Route path="/drivers"     element={<DriverProfiles />} />
+            <Route path="/maintenance" element={<MaintenanceLogs />} />
+            <Route path="/analytics"   element={<Analytics />} />
+          </Route>
+        </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AuthProvider>
   )
 }
-
-export default App

@@ -1,39 +1,37 @@
-import React from 'react';
+import { cn } from '../lib/utils'
 
-const StatusPill = ({ status }) => {
-  let colorClasses = 'bg-gray-100 text-gray-800'; // Default Gray
+const STATUS_STYLES = {
+  // Vehicle
+  Available:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  'On Trip':   'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  'In Shop':   'bg-red-500/20 text-red-400 border-red-500/30',
+  Retired:     'bg-slate-600/40 text-slate-400 border-slate-600/30',
 
-  switch (status) {
-    case 'Available':
-    case 'On Duty':
-    case 'Completed':
-      colorClasses = 'bg-green-100 text-green-800 border-green-200';
-      break;
-    case 'On Trip':
-    case 'Dispatched':
-      colorClasses = 'bg-blue-100 text-blue-800 border-blue-200';
-      break;
-    case 'In Shop':
-    case 'Suspended':
-    case 'Cancelled':
-      colorClasses = 'bg-red-100 text-red-800 border-red-200';
-      break;
-    case 'Draft':
-    case 'Retired':
-    case 'Off Duty':
-      colorClasses = 'bg-gray-100 text-gray-800 border-gray-200';
-      break;
-    default:
-      break;
-  }
+  // Driver
+  'On Duty':   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  'Off Duty':  'bg-slate-600/40 text-slate-400 border-slate-600/30',
+  Suspended:   'bg-red-500/20 text-red-400 border-red-500/30',
 
+  // Trip
+  Draft:       'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  Dispatched:  'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Completed:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  Cancelled:   'bg-slate-600/40 text-slate-400 border-slate-600/30',
+
+  // Maintenance
+  Open:        'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  Closed:      'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+
+  // License
+  EXPIRED:     'bg-red-600/30 text-red-400 border-red-600/50',
+  'EXPIRING SOON': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+}
+
+export default function StatusPill({ status, className }) {
+  const style = STATUS_STYLES[status] || 'bg-slate-700/40 text-slate-400 border-slate-700/30'
   return (
-    <span
-      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${colorClasses}`}
-    >
+    <span className={cn('badge border', style, className)}>
       {status}
     </span>
-  );
-};
-
-export default StatusPill;
+  )
+}
