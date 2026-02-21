@@ -1,188 +1,171 @@
+/* ─────────────────────────────────────────────────────────
+   VehicleRegistry.jsx
+   OWNER: Member C — Vehicle Registry (data table + add form)
+
+   Features:
+     - Data table of all vehicles with status pills
+     - Add Vehicle modal with validation
+     - License plate uniqueness check
+     - Status pill color coding consistent with plan.txt
+──────────────────────────────────────────────────────────── */
 import { useState } from 'react'
+import { Truck, Plus } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import { Plus, Truck } from 'lucide-react'
 import api from '../lib/api'
-import DataTable from '../components/DataTable'
 import StatusPill from '../components/StatusPill'
 import Modal from '../components/Modal'
-import LoadingSpinner from '../components/LoadingSpinner'
-import { formatCurrency } from '../lib/utils'
-
-const VEHICLE_TYPES = ['Truck', 'Van', 'Bike']
+import toast from 'react-hot-toast'
 
 export default function VehicleRegistry() {
+  const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const qc = useQueryClient()
+  const [formData, setFormData] = useState({
+    name: '', license_plate: '', type: 'Van', max_capacity_kg: '', acquisition_cost: ''
+  })
+  const [formError, setFormError] = useState('')
 
-  const { data: vehicles, isLoading } = useQuery({
-    queryKey: ['vehicles'],
+  // Fetch Vehicles
+  const { data: vehicles = [], isLoading } = useQuery({
+    queryKey: ['vehicles', 'all'],
     queryFn: () => api.get('/vehicles').then(r => r.data),
-    refetchInterval: 10000,
+    refetchInterval: 8000
   })
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm()
-
-  const addVehicle = useMutation({
-    mutationFn: (data) => api.post('/vehicles', data),
+  // Create Vehicle
+  const createVehicle = useMutation({
+    mutationFn: (data) => api.post('/vehicles', data).then(r => r.data),
     onSuccess: () => {
-      toast.success('Vehicle added successfully!')
-      qc.invalidateQueries({ queryKey: ['vehicles'] })
-      qc.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       setIsModalOpen(false)
-      reset()
+      setFormData({ name: '', license_plate: '', type: 'Van', max_capacity_kg: '', acquisition_cost: '' })
+      setFormError('')
+      toast.success('Vehicle registered successfully!')
     },
     onError: (err) => {
-      const msg = err.response?.data?.message || 'Failed to add vehicle'
-      toast.error(msg)
-    },
+      setFormError(err.response?.data?.error || 'Failed to create vehicle')
+    }
   })
 
-  const onSubmit = (data) => {
-    addVehicle.mutate({
-      ...data,
-      max_capacity_kg: parseInt(data.max_capacity_kg),
-      acquisition_cost: parseFloat(data.acquisition_cost),
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setFormError('')
+    if (!formData.name || !formData.license_plate || !formData.max_capacity_kg || !formData.acquisition_cost) {
+      setFormError('All fields are required')
+      return
+    }
+    if (vehicles.some(v => v.license_plate === formData.license_plate)) {
+      setFormError('License plate already exists')
+      return
+    }
+    createVehicle.mutate({
+      ...formData,
+      max_capacity_kg: Number(formData.max_capacity_kg),
+      acquisition_cost: Number(formData.acquisition_cost)
     })
   }
 
-  const columns = [
-    { key: 'name',             header: 'Name / Model' },
-    { key: 'license_plate',    header: 'License Plate',
-      render: (v) => <span className="font-mono text-xs bg-slate-800 px-2 py-0.5 rounded">{v}</span> },
-    { key: 'type',             header: 'Type' },
-    { key: 'max_capacity_kg',  header: 'Capacity (kg)',
-      render: (v) => <span className="font-mono">{v?.toLocaleString()}</span> },
-    { key: 'odometer',         header: 'Odometer',
-      render: (v) => <span className="font-mono">{v?.toLocaleString()} km</span> },
-    { key: 'acquisition_cost', header: 'Acq. Cost',
-      render: (v) => <span className="font-mono text-slate-400">{formatCurrency(v)}</span> },
-    { key: 'status',           header: 'Status',
-      render: (v) => <StatusPill status={v} /> },
-  ]
+  const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
 
   return (
     <div>
+      {/* Page Header */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Vehicle Registry</h1>
-          <p className="page-subtitle">Manage fleet assets · {vehicles?.length ?? 0} vehicles</p>
+          <p className="page-subtitle">Manage your fleet assets, track capacity and status</p>
         </div>
-        <button
-          id="add-vehicle-btn"
-          onClick={() => setIsModalOpen(true)}
-          className="btn-primary"
-        >
-          <Plus className="w-4 h-4" />
-          Add Vehicle
+        <button onClick={() => setIsModalOpen(true)} className="btn-primary">
+          <Plus className="w-4 h-4" /> Add Vehicle
         </button>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={vehicles}
-        isLoading={isLoading}
-        emptyMessage="No vehicles registered yet. Click '+ Add Vehicle' to add one."
-      />
-
       {/* Add Vehicle Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); reset() }}
-        title="Register New Vehicle"
-      >
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register New Vehicle">
+        {formError && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+            ⚠️ {formError}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="label">Vehicle Name / Model</label>
+            <input type="text" required placeholder="e.g. Toyota Van-05" className="input" value={formData.name} onChange={set('name')} />
+          </div>
           <div className="grid grid-cols-2 gap-4">
-            {/* Name */}
-            <div className="col-span-2">
-              <label className="label">Vehicle Name / Model</label>
-              <input
-                id="vehicle-name"
-                className={`input ${errors.name ? 'border-red-500' : ''}`}
-                placeholder="e.g. Toyota Van-05"
-                {...register('name', { required: 'Name is required' })}
-              />
-              {errors.name && <p className="field-error">{errors.name.message}</p>}
-            </div>
-
-            {/* License Plate */}
             <div>
               <label className="label">License Plate</label>
-              <input
-                id="license-plate"
-                className={`input ${errors.license_plate ? 'border-red-500' : ''}`}
-                placeholder="MH-01-AB-1234"
-                {...register('license_plate', { required: 'License plate is required' })}
-              />
-              {errors.license_plate && <p className="field-error">{errors.license_plate.message}</p>}
+              <input type="text" required placeholder="e.g. MH-12-AB-1234" className="input" value={formData.license_plate} onChange={set('license_plate')} />
             </div>
-
-            {/* Type */}
             <div>
-              <label className="label">Vehicle Type</label>
-              <select
-                id="vehicle-type"
-                className={`input ${errors.type ? 'border-red-500' : ''}`}
-                {...register('type', { required: 'Type is required' })}
-              >
-                <option value="">Select type...</option>
-                {VEHICLE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              <label className="label">Type</label>
+              <select className="input" value={formData.type} onChange={set('type')}>
+                <option value="Truck">Truck</option>
+                <option value="Van">Van</option>
+                <option value="Bike">Bike</option>
               </select>
-              {errors.type && <p className="field-error">{errors.type.message}</p>}
-            </div>
-
-            {/* Max Capacity */}
-            <div>
-              <label className="label">Max Capacity (kg)</label>
-              <input
-                id="max-capacity"
-                type="number"
-                className={`input ${errors.max_capacity_kg ? 'border-red-500' : ''}`}
-                placeholder="1000"
-                {...register('max_capacity_kg', {
-                  required: 'Capacity is required',
-                  min: { value: 1, message: 'Must be > 0' }
-                })}
-              />
-              {errors.max_capacity_kg && <p className="field-error">{errors.max_capacity_kg.message}</p>}
-            </div>
-
-            {/* Acquisition Cost */}
-            <div>
-              <label className="label">Acquisition Cost (₹)</label>
-              <input
-                id="acquisition-cost"
-                type="number"
-                className={`input ${errors.acquisition_cost ? 'border-red-500' : ''}`}
-                placeholder="800000"
-                {...register('acquisition_cost', {
-                  required: 'Acquisition cost is required',
-                  min: { value: 0, message: 'Must be ≥ 0' }
-                })}
-              />
-              {errors.acquisition_cost && <p className="field-error">{errors.acquisition_cost.message}</p>}
             </div>
           </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => { setIsModalOpen(false); reset() }}
-              className="btn-secondary flex-1"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={addVehicle.isPending}
-              className="btn-primary flex-1 justify-center"
-            >
-              {addVehicle.isPending ? <><LoadingSpinner size="sm" /> Saving...</> : 'Add Vehicle'}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Max Capacity (kg)</label>
+              <input type="number" required min="1" className="input" value={formData.max_capacity_kg} onChange={set('max_capacity_kg')} />
+            </div>
+            <div>
+              <label className="label">Acquisition Cost ($)</label>
+              <input type="number" required min="1" className="input" value={formData.acquisition_cost} onChange={set('acquisition_cost')} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancel</button>
+            <button type="submit" disabled={createVehicle.isPending} className="btn-primary">
+              {createVehicle.isPending ? 'Saving...' : 'Register Vehicle'}
             </button>
           </div>
         </form>
       </Modal>
+
+      {/* Vehicle Table */}
+      <div className="table-wrapper">
+        <table className="ff-table">
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Type</th>
+              <th>Capacity</th>
+              <th>Odometer</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr><td colSpan="5" className="text-center py-8 text-slate-500">Loading vehicles...</td></tr>
+            ) : vehicles.length === 0 ? (
+              <tr><td colSpan="5" className="text-center py-8 text-slate-500">No vehicles registered yet. Click + to add one.</td></tr>
+            ) : (
+              vehicles.map(v => (
+                <tr key={v.id}>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-200">{v.name}</div>
+                        <div className="text-xs text-slate-500 font-mono">{v.license_plate}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="text-slate-300">{v.type}</td>
+                  <td className="text-slate-300">{v.max_capacity_kg?.toLocaleString()} kg</td>
+                  <td className="text-slate-300 font-mono">{v.odometer?.toLocaleString()} km</td>
+                  <td><StatusPill status={v.status} /></td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
